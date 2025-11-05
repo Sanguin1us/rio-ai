@@ -1,5 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { AnimateOnScroll } from './AnimateOnScroll';
 import { ChatMessage, useRioChat } from '../hooks/useRioChat';
 
@@ -35,7 +40,67 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
           isUser ? 'bg-blue-100 text-right' : 'bg-slate-100'
         }`}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <div className="prose prose-sm max-w-none whitespace-pre-wrap break-words text-prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+            components={{
+              a: ({ node, ...anchorProps }) => (
+                <a {...anchorProps} rel="noopener noreferrer" target="_blank" />
+              ),
+              code: ({ inline, className, children, node, ...codeProps }) => {
+                if (inline) {
+                  return (
+                    <code
+                      className={`rounded bg-slate-200/80 px-1.5 py-0.5 font-mono ${className ?? ''}`}
+                      {...codeProps}
+                    >
+                      {children}
+                    </code>
+                  );
+                }
+                return (
+                  <pre className="mt-3 overflow-x-auto rounded-md bg-slate-900 px-3 py-2 text-white">
+                    <code className={`font-mono text-xs ${className ?? ''}`} {...codeProps}>
+                      {children}
+                    </code>
+                  </pre>
+                );
+              },
+              ul: ({ node, className, ...listProps }) => (
+                <ul
+                  className={`list-disc space-y-2 pl-5 ${className ?? ''}`}
+                  {...listProps}
+                />
+              ),
+              ol: ({ node, className, ...listProps }) => (
+                <ol
+                  className={`list-decimal space-y-2 pl-5 ${className ?? ''}`}
+                  {...listProps}
+                />
+              ),
+              li: ({ node, className, ...itemProps }) => (
+                <li className={`leading-relaxed ${className ?? ''}`} {...itemProps} />
+              ),
+              hr: () => <hr className="my-4 border border-slate-300/70" />,
+              p: ({ node, className, ...paragraphProps }) => {
+                const paragraphClasses = [
+                  className,
+                  'leading-relaxed',
+                  'my-2',
+                  'first:mt-0',
+                  'last:mb-0',
+                  isUser ? 'text-right' : null,
+                ]
+                  .filter(Boolean)
+                  .join(' ');
+                return <p className={paragraphClasses} {...paragraphProps} />;
+              },
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+        </div>
         <span className="absolute inset-0 rounded-xl border border-white/0 group-hover:border-white/40 transition" />
       </div>
     </div>
