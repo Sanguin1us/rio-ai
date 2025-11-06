@@ -1,88 +1,80 @@
 # Rio 2.0 – Portal da Família de Modelos de IA
 
-Website institucional que apresenta a família de modelos “Rio 2.0”, reúne documentação resumida, destaca iniciativas open source e oferece um playground de chat para o modelo flagship da Prefeitura do Rio de Janeiro.
+Portal institucional da Prefeitura do Rio/Escritório de Dados para apresentar a família de modelos Rio 2.0, destacar iniciativas open source e oferecer um playground de chat com o modelo flagship.
 
-## 📌 Visão Geral
-- **Stack:** React 19 + TypeScript, Vite, Tailwind (via CDN), Lucide Icons.
-- **Arquitetura:** SPA com rotas simuladas a partir de “views” internas (`home`, `chat`, `opensource`).  
-- **Dados:** Catálogo centralizado em `constants.ts`, tipado via `types.ts`.  
-- **Interatividade:** Chat e playground consomem o endpoint `https://rio-api-test.onrender.com/v1/chat/completions` através de proxy público (`corsproxy.io`). Apenas o modelo *Rio 2.0 32B Omni* possui demo ativa.
+## Visão Geral
+- SPA em React 19 + TypeScript com Vite 6; estilos com Tailwind via CDN e ícones Lucide.
+- Navegação controlada por estado (`home`, `chat`, `opensource`) em `App.tsx`, sem react-router.
+- Catálogo tipado em `constants.ts` e `types.ts`, incluindo metadados, tags, códigos e links Hugging Face.
+- Hook `useRioChat` centraliza mensagens, histórico e integração com o proxy `/api/chat`.
+- `AnimateOnScroll` e `TerminalAnimation` trazem microinterações sem dependências externas pesadas.
 
-## ✨ Principais Funcionalidades
-- **Landing page temática** com Hero, grid de modelos filtrável e narrativa sobre a plataforma multiagente.
-- **Detalhes por modelo** com casos de uso, snippets de código e ficha técnica.
-- **Playground de chat** reutilizável que suporta scroll automático, estados de carregamento e feedback de erros.
-- **Seção “Open Source”** destacando modelos liberados sob CC BY 4.0.
-- **Integrações visuais** (animações on-scroll, visualização de agentes, terminal animado) para contar a história do ecossistema.
+## Principais Experiências
+- **Home / Catálogo** – hero com CTA, filtro por categoria e cartões clicáveis que descrevem cada modelo.
+- **Detalhe do modelo** – visões de casos de uso, snippets com highlight, specs formatadas e playground embutido quando `supportsChat` é verdadeiro.
+- **Chat Rio 2.0 32B Omni** – suporta Markdown, GFM, KaTeX, realce de código, edição de mensagens e cópia rápida.
+- **Open Source** – lista modelos com `isOpenSource`, destacando licenças CC BY 4.0 e atalhos para Hugging Face.
+- **Plataforma Evolve** – storytelling sobre fluxo evolutivo com terminal animado e etapas descritas em bullet points.
 
-## 🗂 Estrutura do Projeto
+## Arquitetura em Destaque
+- **Dados & tipagem** – todos os modelos residem em `constants.ts`, tipados por `Model`, `UseCase` e `CodeSnippet` (`types.ts`). Adições ficam centralizadas e seguras.
+- **Hook `useRioChat`** – controla fila de mensagens, limite de histórico, prompt de sistema opcional e estados de carregamento/erro. Reutilizado pelo chat principal e pelo playground de detalhes.
+- **Proxy Express** – `server/proxy.mjs` injeta `RIO_API_KEY`, respeita CORS configurável e reencaminha para `RIO_API_URL`, evitando expor credenciais no bundle.
+- **Configuração Vite** – `vite.config.ts` publica o dev server em `http://localhost:3000`, define prefixos de ambiente (`VITE_` e `RIO_`) e provisiona proxy local para `/api`.
+- **UX** – `AnimateOnScroll` usa IntersectionObserver para “revelar” blocos; `TerminalAnimation` simula logs do pipeline evolutivo; `ModelDetailView` rederiva a UI com base na seleção atual.
+
+## Pré-requisitos
+- Node.js 18+ (recomendado 20 LTS).
+- npm 9+ (ou pnpm/yarn equivalente).
+- Arquivo `.env.local` com as variáveis descritas abaixo.
+
+## Início Rápido
+1. Instale as dependências: `npm install`.
+2. Copie `.env.example` para `.env.local` e preencha `RIO_API_KEY`; ajuste URLs/portas se necessário.
+3. Inicie o proxy seguro (injeta credencial e faz forward para a API oficial): `npm run proxy`.
+4. Em outro terminal, rode o projeto: `npm run dev` e acesse `http://localhost:3000` (`-- --host` para rede local).
+5. Para build de produção: `npm run build` seguido de `npm run preview`.
+
+## Scripts npm
+| Script            | Descrição                                                                 |
+|-------------------|---------------------------------------------------------------------------|
+| `npm run dev`     | Servidor Vite em modo desenvolvimento com HMR.                            |
+| `npm run proxy`   | Proxy Express em `http://localhost:3001/api/chat` que injeta `RIO_API_KEY`.|
+| `npm run build`   | Build otimizado gerado em `dist/`.                                        |
+| `npm run preview` | Servidor estático para inspeção do bundle gerado.                         |
+
+## Variáveis de Ambiente
+| Chave                       | Default                                         | Uso |
+|-----------------------------|-------------------------------------------------|-----|
+| `RIO_API_KEY`               | —                                               | Token obrigatório para o proxy injetar no backend. |
+| `RIO_API_URL`               | `https://rio-api-test.onrender.com/v1/chat/completions` | Endpoint de destino do proxy. |
+| `RIO_PROXY_PORT`            | `3001`                                          | Porta do proxy Express. |
+| `RIO_ALLOWED_ORIGINS`       | `*` (via `true`)                               | Lista de origens permitidas para CORS (separadas por vírgula). |
+| `RIO_PROXY_TARGET`          | `http://localhost:${RIO_PROXY_PORT}`           | URL alvo usada pelo Vite para proxiar `/api`. |
+| `VITE_RIO_CHAT_PROXY_URL`   | —                                               | URL externa para `useRioChat` quando não se deseja usar `/api/chat`. |
+
+## Estrutura do Projeto
 ```
-├── components/              # Componentes reutilizáveis (seções, cartões, animações, detalhe do modelo)
-│   └── detail/              # Subcomponentes específicos da página de detalhe
-├── constants.ts             # Catálogo de modelos e metadados
-├── App.tsx                  # Orquestra as “views” e seleção de modelos
-├── index.tsx / index.html   # Bootstrap Vite + Tailwind CDN
-├── types.ts                 # Tipagem compartilhada
-├── vite.config.ts           # Configuração do bundler
-├── .env.local               # Variáveis de ambiente locais (não versionado)
-└── README.md                # Este documento
+.
+├─ App.tsx                 # Orquestra as visualizações e a seleção de modelos
+├─ components/             # Interface (Header, Hero, Chat, Terminal, etc.)
+│  └─ detail/              # Subcomponentes da página de detalhes
+├─ hooks/useRioChat.ts     # Hook de chat reutilizável
+├─ constants.ts            # Catálogo completo da família Rio 2.0
+├─ types.ts                # Tipagens compartilhadas
+├─ server/proxy.mjs        # Proxy Express + dotenv
+├─ index.html / index.tsx  # Bootstrap Vite + Tailwind CDN
+├─ vite.config.ts          # Configuração de build e proxy
+└─ dist/                   # Saída de build (`npm run build`)
 ```
 
-## ⚙️ Pré-requisitos
-- Node.js 18+ (recomendado 20 LTS).  
-- npm 9+ ou pnpm/yarn equivalente.  
-- Recomendado: editor com suporte a TypeScript/ESLint e plugin Prettier.
+## Customização
+- **Adicionar modelos**: edite `constants.ts`, preenchendo `Model` e opcionalmente `useCases`, `codeSnippets`, `huggingFaceUrl` e `supportsChat`.
+- **Ajustar o chat**: passe opções adicionais para `useRioChat` (ex.: `historyLimit`, `model`, `apiUrl`) ou sobrescreva o proxy com `VITE_RIO_CHAT_PROXY_URL`.
+- **Estilos**: Tailwind é carregado via CDN; ajuste tokens em `index.html` ou adicione classes utilitárias nos componentes.
+- **Automação interna**: mantenha este README como fonte de verdade ao atualizar arquitetura, fluxos ou onboarding.
 
-## 🚀 Configuração Rápida
-1. **Instale as dependências**
-   ```bash
-   npm install
-   ```
-2. **Variáveis de ambiente**
-   - Copie `.env.example` para `.env.local`.
-   - Preencha `RIO_API_KEY` com sua chave real (mantenha o arquivo fora do versionamento).
-   - Ajuste `RIO_PROXY_PORT` ou `VITE_RIO_CHAT_PROXY_URL` se precisar mudar portas/rotas.
-3. **Inicie o proxy seguro**
-   ```bash
-   npm run proxy
-   ```
-   O servidor padrão escuta em `http://localhost:3001/api/chat` e injeta o token automaticamente.
-4. **Ambiente de desenvolvimento** (novo terminal)
-   ```bash
-   npm run dev
-   ```
-   O Vite iniciará em `http://localhost:5173` (use `-- --host` para rede local).
-5. **Build de produção**
-   ```bash
-   npm run build
-   npm run preview   # Servir build estático para inspeção
-   ```
+## Licença & Contato
+Conteúdo visual e textual pertence à Prefeitura do Rio / IPLANRIO. Confirme com o time jurídico antes de reutilizar assets.
 
-## 📜 Scripts Disponíveis
-| Comando           | Ação                                                        |
-|-------------------|-------------------------------------------------------------|
-| `npm run dev`     | Ambiente de desenvolvimento (hot module replacement)        |
-| `npm run build`   | Gera bundle otimizado em `dist/`                            |
-| `npm run preview` | Servidor estático para revisar o build                      |
-
-## 🔐 Integrações & Segurança
-- **Proxy oficial incluso**: o script `npm run proxy` (arquivo `server/proxy.mjs`) carrega `RIO_API_KEY` do `.env.local`, injeta o header e evita expor a credencial no bundle.  
-- **Ajuste de ambiente**: personalize `RIO_PROXY_PORT`, `RIO_ALLOWED_ORIGINS` ou `RIO_API_URL` conforme o cenário (produção/QA).  
-- **Uso responsável**: o chat envia as últimas 6 mensagens e um prompt de sistema. Ajuste limites, sanitize entradas e monitore o backend para evitar abuso.
-
-## 🧱 Padrões de Código
-- **Tipagem:** mantenha `types.ts` como fonte única de contratos.  
-- **Estilo:** utilize Tailwind para estilos rápidos; prefira classes utilitárias consistentes.  
-- **Componentização:** reparta responsabilidades (seções vs. widgets) para preservar legibilidade.  
-- **Acessibilidade:** componentes já incluem labels e estados focados; preserve ao criar novos elementos interativos.
-
-## 🗒️ Instruções para o Codex
-- **Na conversa:** envie as orientações diretamente no chat (de preferência na primeira mensagem). Elas valem para a sessão atual e precisam deixar claro quando passam a vigorar.
-- **No repositório:** mantenha um arquivo dedicado (por exemplo, `CODEX_INSTRUCTIONS.md`) ou uma seção neste README. Ao iniciar nova sessão, lembre o Codex de consultá-las para que sejam aplicadas.
-
-## 📄 Licença & Créditos
-Conteúdo visual e textual pertence à Prefeitura do Rio / IPLANRIO. Consulte o time jurídico antes de reutilizar assets ou layouts fora do escopo institucional.
-
----
-**Contato interno:** Escritório de Dados – IPLANRIO (`dados@iplan.rio`)  
-**Manutenção:** mantenha este README atualizado sempre que a arquitetura ou fluxos mudarem. Ele é a principal referência para você e para os próximos desenvolvedores.
+Contato interno: Escritório de Dados – IPLANRIO (`dados@iplan.rio`).

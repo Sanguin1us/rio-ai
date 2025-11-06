@@ -2,13 +2,14 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Send, Copy, Check, Edit3, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Highlight, Language, themes } from 'prism-react-renderer';
+import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
-import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { AnimateOnScroll } from './AnimateOnScroll';
 import { ChatMessage, useRioChat } from '../hooks/useRioChat';
+import { normalizeMathDelimiters } from '../lib/markdown';
 
 const codeTheme = themes.nightOwl;
 
@@ -58,6 +59,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, disableActions
   const isUser = message.role === 'user';
   const [copiedBubble, setCopiedBubble] = useState(false);
   const bubbleCopyTimeoutRef = useRef<number | null>(null);
+  const markdownContent = normalizeMathDelimiters(message.content);
 
   useEffect(
     () => () => {
@@ -230,7 +232,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, disableActions
         >
         <div className="max-w-none whitespace-normal break-words text-[14px] leading-relaxed text-prose [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&>*+*]:mt-3">
           <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+            remarkPlugins={[remarkMath, remarkGfm, remarkBreaks]}
             rehypePlugins={[rehypeKatex]}
             components={{
               a: ({ node, ...anchorProps }) => (
@@ -331,7 +333,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, disableActions
               },
             }}
           >
-            {message.content}
+            {markdownContent}
           </ReactMarkdown>
         </div>
         <span className="pointer-events-none absolute inset-0 rounded-2xl border border-white/0 transition group-hover:border-white/40" />
