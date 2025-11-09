@@ -247,10 +247,6 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                   Benchmarks oficiais
                 </p>
                 <h2 className="mt-2 text-3xl font-bold text-prose">Rio 2.5 Preview em um único painel</h2>
-                <p className="mt-2 text-sm text-prose-light max-w-2xl">
-                  Veja o caminho completo em uma tacada só: começamos na base, passamos pelo reforço (+RL) e terminamos no
-                  modo com raciocínio latente. Tudo alinhado na mesma escala para comparar sem esforço.
-                </p>
               </div>
             </div>
 
