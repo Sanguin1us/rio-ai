@@ -21,7 +21,7 @@ interface Rio25PreviewDetailProps {
 
 const BENCHMARKS = [
   { metric: 'AIME 2025', base: '85.0', preview: '93.3', latent: '95.0' },
-  { metric: 'HMMT 2025', base: '71.4', preview: '80.0', latent: '86.6' },
+  { metric: 'HMMT 2025', base: '71.4', preview: '80.0', latent: '83.3' },
   { metric: 'GPQA Diamond', base: '73.4', preview: '75.8', latent: '77.2' },
   { metric: 'LiveCodeBench v6', base: '66.0', preview: '69.4', latent: '69.6' },
 ];
@@ -50,7 +50,7 @@ const LABEL_POSITION_OVERRIDES: Partial<Record<string, LabelOverride>> = {
 const MODEL_COMPARISON: ModelComparisonDatum[] = [
   { model: 'Gemini 2.5 Pro', cost: 10, gpqa: 86.4, aime: 88, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5', cost: 10, gpqa: 85.7, aime: 94.6, color: '#9CA3AF', isRio: false },
-  { model: 'Rio 2.5 Preview', cost: 0.15, gpqa: 77.2, aime: 95, color: '#1E40AF', isRio: true },
+  { model: 'Rio 2.5 Preview', cost: 0.1, gpqa: 77.2, aime: 95, color: '#1E40AF', isRio: true },
   { model: 'Gemini 2.5 Flash', cost: 2.5, gpqa: 79, aime: 78, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, color: '#9CA3AF', isRio: false },
   { model: 'Gemini 2.5 Flash-Lite', cost: 0.4, gpqa: 71, aime: 69, color: '#9CA3AF', isRio: false },
@@ -61,7 +61,7 @@ const MODEL_COMPARISON: ModelComparisonDatum[] = [
 
 const COST_TICKS = [0.1, 1, 10];
 const COST_DOMAIN = {
-  min: COST_TICKS[0],
+  min: 0.05,
   max: 30,
 };
 const DEFAULT_Y_MIN = 65;
@@ -172,8 +172,12 @@ const ComparisonChart: React.FC<{
     return height - bottom - ratio * plotHeight;
   };
   const formatCost = (value: number) => {
-    const formatted = value >= 1 ? (Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)) : value.toFixed(1);
-    return `$${formatted}`;
+    if (value >= 1) {
+      const formatted = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
+      return `$${formatted}`;
+    }
+    if (value >= 0.1) return `$${value.toFixed(1)}`;
+    return `$${value.toFixed(2)}`;
   };
   const resolveLabelPosition = (model: string, defaultAnchor: 'start' | 'end') => {
     const override = LABEL_POSITION_OVERRIDES[model];
@@ -396,7 +400,7 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
   return (
     <div className="bg-white">
       <section className="border-b border-slate-200 bg-gradient-to-b from-white via-slate-50 to-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12 sm:pt-10 sm:pb-16">
           <button
             onClick={onBack}
             className="inline-flex items-center gap-2 text-sm font-semibold text-prose-light hover:text-rio-primary transition"
@@ -405,11 +409,8 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
             Voltar para todos os modelos
           </button>
 
-          <div className="mt-10 space-y-10">
+          <div className="mt-6 space-y-10">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rio-primary shadow-sm ring-1 ring-slate-200">
-                Prévia exclusiva
-              </div>
               <h1 className="text-4xl font-bold leading-tight text-prose sm:text-5xl">{model.name}</h1>
               <p className="text-lg text-prose-light leading-relaxed">{model.description}</p>
               <div className="flex flex-wrap gap-2">
@@ -422,32 +423,6 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                   </span>
                 ))}
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="h-5 w-5 text-rio-primary" />
-                    <div>
-                      <p className="text-sm font-semibold text-prose">Modelo Base</p>
-                      <p className="text-xs text-prose-light">{model.baseModel}</p>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm text-prose-light">
-                    Construído sobre o Qwen3-30B-A3B-Thinking-2507 para preservar raciocínio longo.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <Activity className="h-5 w-5 text-rio-primary" />
-                    <div>
-                      <p className="text-sm font-semibold text-prose">Reinforcement Learning</p>
-                      <p className="text-xs text-prose-light">Métodos proprietários</p>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm text-prose-light">
-                    Novas políticas de reforço garantem alinhamento institucional e segurança.
-                  </p>
-                </div>
-              </div>
             </div>
 
             <div className="relative rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-lg">
@@ -457,9 +432,8 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
               <div className="relative flex h-full flex-col gap-6">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rio-primary">Comparativo externo</p>
-                  <h2 className="mt-2 text-2xl font-bold text-prose">Rio 2.5 Preview versus modelos populares</h2>
                   <p className="mt-2 text-sm text-prose-light">
-                    Dois gráficos mostram o custo por 1M tokens no eixo X (escala logarítmica) e as pontuações no eixo Y para AIME 2025 e GPQA-Diamond.
+                    Os gráficos mostram o custo por 1M de output tokens no eixo X (escala logarítmica) e as pontuações para os benchmarks AIME 2025 e GPQA-Diamond no eixo Y.
                   </p>
                 </div>
                 <div className="grid gap-4 lg:grid-cols-2">
