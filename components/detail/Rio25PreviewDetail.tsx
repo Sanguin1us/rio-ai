@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Model } from '../../types';
 import { ArrowLeft, ArrowUpRight, Bolt, Box, Dumbbell, Goal, Route, Sparkles } from 'lucide-react';
 import { DetailUseCases } from './DetailUseCases';
@@ -31,6 +31,20 @@ type ModelComparisonDatum = {
   color: string;
   isRio: boolean;
 };
+
+interface ConnectorLayout {
+  width: number;
+  height: number;
+  baseBottom: number;
+  baseCenter: number;
+  routerTop: number;
+  routerCenter: number;
+  routerBottom: number;
+  cardTop: number;
+  cardBottom: number;
+  rioTop: number;
+  cardCenters: number[];
+}
 
 const LABEL_POSITION_OVERRIDES: Partial<Record<string, LabelOverride>> = {
   'Gemini 2.5 Pro': 'top-right',
@@ -119,11 +133,6 @@ const TRAINING_MODES = [
   },
 ];
 
-const MODE_TAGLINES: Record<string, string> = {
-  'Reinforcement Learning': 'Recompensas institucionais simultâneas',
-  'Supervised Fine-Tuning': 'Estilo supervisionado com prompts reais',
-  'On-Policy Distillation': 'Resposta final replica o modo latente',
-};
 const DEFAULT_MODE_WEIGHTS: Record<string, number> = {
   'Reinforcement Learning': 0.34,
   'Supervised Fine-Tuning': 0.46,
@@ -420,6 +429,57 @@ const ComparisonChart: React.FC<{
 };
 export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, onBack }) => {
   const [modeWeights, setModeWeights] = useState<Record<string, number>>(DEFAULT_MODE_WEIGHTS);
+  const baseRef = useRef<HTMLDivElement | null>(null);
+  const connectorRef = useRef<HTMLDivElement | null>(null);
+  const routerRef = useRef<HTMLDivElement | null>(null);
+  const cardGridRef = useRef<HTMLDivElement | null>(null);
+  const rioRef = useRef<HTMLDivElement | null>(null);
+  const [connectorLayout, setConnectorLayout] = useState<ConnectorLayout | null>(null);
+
+  const measureConnectorLayout = useCallback(() => {
+    if (
+      typeof window === 'undefined' ||
+      !baseRef.current ||
+      !connectorRef.current ||
+      !routerRef.current ||
+      !cardGridRef.current ||
+      !rioRef.current
+    ) {
+      return;
+    }
+
+    const containerRect = connectorRef.current.getBoundingClientRect();
+    const baseRect = baseRef.current.getBoundingClientRect();
+    const routerRect = routerRef.current.getBoundingClientRect();
+    const cardsRect = cardGridRef.current.getBoundingClientRect();
+    const rioRect = rioRef.current.getBoundingClientRect();
+    const cardNodes = Array.from(
+      cardGridRef.current.querySelectorAll<HTMLElement>('[data-connector-card="true"]'),
+    );
+
+    if (!cardNodes.length) {
+      return;
+    }
+
+    const cardCenters = cardNodes.map((node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.left - containerRect.left + rect.width / 2;
+    });
+
+    setConnectorLayout({
+      width: containerRect.width,
+      height: containerRect.height,
+      baseBottom: baseRect.bottom - containerRect.top,
+      baseCenter: baseRect.left - containerRect.left + baseRect.width / 2,
+      routerTop: routerRect.top - containerRect.top,
+      routerCenter: routerRect.left - containerRect.left + routerRect.width / 2,
+      routerBottom: routerRect.bottom - containerRect.top,
+      cardTop: cardsRect.top - containerRect.top,
+      cardBottom: cardsRect.bottom - containerRect.top,
+      rioTop: rioRect.top - containerRect.top,
+      cardCenters,
+    });
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -428,6 +488,36 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
     }, 2800);
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    measureConnectorLayout();
+    if (typeof window === 'undefined') return undefined;
+    window.addEventListener('resize', measureConnectorLayout);
+    return () => window.removeEventListener('resize', measureConnectorLayout);
+  }, [measureConnectorLayout]);
+
+  useEffect(() => {
+    measureConnectorLayout();
+  }, [measureConnectorLayout, modeWeights]);
+
+  const connectorMetrics = useMemo(() => {
+    if (!connectorLayout || connectorLayout.cardCenters.length === 0) {
+      return null;
+    }
+    const centerX = connectorLayout.routerCenter ?? connectorLayout.baseCenter ?? connectorLayout.width / 2;
+    const firstX = Math.min(...connectorLayout.cardCenters);
+    const lastX = Math.max(...connectorLayout.cardCenters);
+    const topGap = Math.max(connectorLayout.cardTop - connectorLayout.routerBottom, 24);
+    const bottomGap = Math.max(connectorLayout.rioTop - connectorLayout.cardBottom, 24);
+    const topRailY = connectorLayout.routerBottom + topGap * 0.5;
+    const bottomRailY = connectorLayout.cardBottom + bottomGap * 0.5;
+    const baseLine = {
+      x: connectorLayout.baseCenter ?? centerX,
+      startY: connectorLayout.baseBottom,
+      endY: connectorLayout.routerTop,
+    };
+    return { centerX, firstX, lastX, topRailY, bottomRailY, baseLine };
+  }, [connectorLayout]);
 
   return (
     <div className="bg-white">
@@ -584,94 +674,178 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
             </div>
             <div className="mt-10 rounded-[32px] border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-6 sm:p-8">
               <div className="flex flex-col gap-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rio-primary">Diagrama interleaved</p>
-                <h3 className="text-xl font-semibold text-prose">Como o fluxo simultâneo se organiza</h3>
+                <h3 className="text-xl font-semibold text-prose">Pipeline de Treinamento</h3>
                 <p className="text-sm text-prose-light max-w-4xl">
-                  O backbone Qwen 3 30B-A3B permanece único do início ao fim. Um roteador de políticas apenas recalibra,
-                  a cada batch, os pesos atribuídos a RL, SFT e distilação on-policy para equilibrar os objetivos.
+                  O diagrama demonstra como o Rio 2.5 simultaneamente maximiza três objetivos: RL, SFT e OPD,
+                  <br />
+                  com um router adaptativo equilibrando os pesos dados a cada método.
                 </p>
               </div>
 
               <div className="mt-8 flex flex-col items-center gap-6">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
-                      <Box className="h-6 w-6 text-rio-primary" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-prose">Base model</p>
-                      <p className="text-xs text-prose-light">Qwen 3 30B-A3B Thinking</p>
-                    </div>
-                  </div>
-                  <div className="h-8 w-0.5 bg-slate-200" />
-                </div>
+                <div ref={connectorRef} className="relative flex w-full max-w-3xl flex-col items-center gap-6">
+                  {connectorMetrics && connectorLayout && (
+                    <svg
+                      className="pointer-events-none absolute inset-0 hidden h-full w-full text-slate-200 md:block"
+                      preserveAspectRatio="none"
+                      viewBox={`0 0 ${connectorLayout.width} ${Math.max(connectorLayout.height, 1)}`}
+                      aria-hidden="true"
+                    >
+                      {connectorMetrics.baseLine && (
+                        <>
+                          <line
+                            x1={connectorMetrics.baseLine.x}
+                            y1={connectorMetrics.baseLine.startY}
+                            x2={connectorMetrics.baseLine.x}
+                            y2={connectorMetrics.baseLine.endY}
+                            stroke="currentColor"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                          />
+                          <circle
+                            cx={connectorMetrics.baseLine.x}
+                            cy={connectorMetrics.baseLine.startY}
+                            r={3}
+                            fill="currentColor"
+                          />
+                          <circle
+                            cx={connectorMetrics.baseLine.x}
+                            cy={connectorMetrics.baseLine.endY}
+                            r={3}
+                            fill="currentColor"
+                          />
+                        </>
+                      )}
+                      <line
+                        x1={connectorMetrics.centerX}
+                        y1={connectorLayout.routerBottom}
+                        x2={connectorMetrics.centerX}
+                        y2={connectorMetrics.topRailY}
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1={connectorMetrics.firstX}
+                        y1={connectorMetrics.topRailY}
+                        x2={connectorMetrics.lastX}
+                        y2={connectorMetrics.topRailY}
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        strokeLinecap="round"
+                      />
+                      {connectorLayout.cardCenters.map((x, index) => (
+                        <g key={`connector-line-${index}`}>
+                          <line
+                            x1={x}
+                            y1={connectorMetrics.topRailY}
+                            x2={x}
+                            y2={connectorLayout.cardTop}
+                            stroke="currentColor"
+                            strokeWidth={1.5}
+                          />
+                          <line
+                            x1={x}
+                            y1={connectorLayout.cardBottom}
+                            x2={x}
+                            y2={connectorMetrics.bottomRailY}
+                            stroke="currentColor"
+                            strokeWidth={1.5}
+                          />
+                          <circle cx={x} cy={connectorMetrics.topRailY} r={3} fill="currentColor" />
+                          <circle cx={x} cy={connectorMetrics.bottomRailY} r={3} fill="currentColor" />
+                        </g>
+                      ))}
+                      <line
+                        x1={connectorMetrics.firstX}
+                        y1={connectorMetrics.bottomRailY}
+                        x2={connectorMetrics.lastX}
+                        y2={connectorMetrics.bottomRailY}
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1={connectorMetrics.centerX}
+                        y1={connectorMetrics.bottomRailY}
+                        x2={connectorMetrics.centerX}
+                        y2={connectorLayout.rioTop}
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  )}
 
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-3 rounded-2xl border border-rio-primary/50 bg-white px-4 py-3 shadow">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rio-primary/10">
-                      <Route className="h-6 w-6 text-rio-primary" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-prose">Router interleaved</p>
-                      <p className="text-xs text-prose-light">Reajusta pesos de RL, SFT e OPD por batch</p>
+                  <div ref={baseRef} className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
+                        <Box className="h-6 w-6 text-rio-primary" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-prose">Base model</p>
+                      </div>
                     </div>
+                    <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
                   </div>
-                  <div className="h-8 w-0.5 bg-slate-200" />
-                  <div className="hidden h-0.5 w-full max-w-3xl bg-gradient-to-r from-transparent via-slate-200 to-transparent md:block" />
-                </div>
 
-                <div className="w-full max-w-3xl space-y-4 rounded-2xl border border-slate-200 bg-white/80 px-4 py-5 shadow-sm">
-                  <div className="grid gap-3 md:grid-cols-3">
-                    {TRAINING_MODES.map(({ title }) => {
+                  <div ref={routerRef} className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rio-primary/10">
+                        <Route className="h-6 w-6 text-rio-primary" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-prose">THOR Router</p>
+                      </div>
+                    </div>
+                    <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
+                  </div>
+
+                  <div ref={cardGridRef} className="relative z-10 grid w-full gap-4 md:grid-cols-3">
+                    {TRAINING_MODES.map(({ Icon, title }) => {
                       const weight = modeWeights[title] ?? 0.33;
                       const percent = Math.round(weight * 100);
                       return (
-                        <div key={`weight-${title}`} className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-3 shadow-sm">
-                          <div className="h-2 rounded-full bg-slate-100">
-                            <div
-                              className="h-full rounded-full bg-rio-primary transition-[width] duration-700 ease-out"
-                              style={{ width: `${Math.max(percent, 8)}%` }}
-                            />
+                        <div
+                          key={title}
+                          data-connector-card="true"
+                          className="relative flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-4 shadow-sm"
+                        >
+                          <span className="pointer-events-none absolute -top-6 left-1/2 block h-6 w-0.5 -translate-x-1/2 bg-slate-200 md:hidden" />
+                          <span className="pointer-events-none absolute -bottom-6 left-1/2 block h-6 w-0.5 -translate-x-1/2 bg-slate-200 md:hidden" />
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50">
+                              <Icon className="h-6 w-6 text-rio-primary" />
+                            </span>
+                            <div>
+                              <p className="text-sm font-semibold text-prose">{title}</p>
+                            </div>
                           </div>
-                          <p className="mt-3 text-center text-xs font-semibold tracking-[0.2em] text-slate-500">{percent}%</p>
+                          <div>
+                            <div className="h-2 rounded-full bg-slate-100">
+                              <div
+                                className="h-full rounded-full bg-rio-primary transition-[width] duration-700 ease-out"
+                                style={{ width: `${Math.max(percent, 8)}%` }}
+                              />
+                            </div>
+                            <p className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                              {percent}%
+                            </p>
+                          </div>
                         </div>
                       );
                     })}
                   </div>
-                </div>
 
-                <div className="grid w-full gap-4 md:grid-cols-3">
-                  {TRAINING_MODES.map(({ Icon, title }) => (
-                    <div
-                      key={title}
-                      className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/90 px-4 py-4 shadow-sm"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50">
-                          <Icon className="h-6 w-6 text-rio-primary" />
-                        </span>
-                        <div>
-                          <p className="text-sm font-semibold text-prose">{title}</p>
-                          <p className="text-xs text-prose-light">
-                            {MODE_TAGLINES[title] ?? 'Operação intercalada'}
-                          </p>
-                        </div>
+                  <div ref={rioRef} className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
+                    <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-md">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50">
+                        <Sparkles className="h-6 w-6 text-emerald-600" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-prose">Rio 2.5 Preview</p>
                       </div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400 text-center">
-                        {Math.round((modeWeights[title] ?? 0.33) * 100)}%
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-md">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50">
-                      <Sparkles className="h-6 w-6 text-emerald-600" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-prose">Rio 2.5 Preview</p>
-                      <p className="text-xs text-prose-light">Checkpoint consolidado com raciocínio latente</p>
                     </div>
                   </div>
                 </div>
