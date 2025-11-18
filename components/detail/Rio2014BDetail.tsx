@@ -51,15 +51,15 @@ interface ConnectorLayout {
 }
 
 const LABEL_POSITION_OVERRIDES: Partial<Record<string, LabelOverride>> = {
-  'Gemini 2.5 Pro': 'top-right',
+  'Gemini 3 Pro': 'top-right',
   'Gemini 2.5 Flash': 'bottom-right',
   'Claude Sonnet 4.5': 'bottom-left',
   'Gemini 2.5 Flash-Lite': { gpqa: 'bottom-right' },
 };
 
 const MODEL_COMPARISON: ModelComparisonDatum[] = [
-  { model: 'Gemini 2.5 Pro', cost: 10, gpqa: 86.4, aime: 88, color: '#9CA3AF', isRio: false },
-  { model: 'GPT-5', cost: 10, gpqa: 85.7, aime: 94.6, color: '#9CA3AF', isRio: false },
+  { model: 'Gemini 3 Pro', cost: 12, gpqa: 91.9, aime: 95.0, color: '#9CA3AF', isRio: false },
+  { model: 'GPT-5.1', cost: 10, gpqa: 88.1, aime: 94.0, color: '#9CA3AF', isRio: false },
   { model: 'Rio 2.0 14B', cost: 0.15, gpqa: 75.1, aime: 88.1, color: '#1E40AF', isRio: true },
   { model: 'Gemini 2.5 Flash', cost: 2.5, gpqa: 79, aime: 78, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, color: '#9CA3AF', isRio: false },
@@ -91,18 +91,18 @@ const METRIC_CONFIGS: Array<{
   yTicks: number[];
   minY?: number;
 }> = [
-  {
-    metric: 'aime',
-    label: 'AIME 2025',
-    yTicks: [70, 80, 90, 100],
-  },
-  {
-    metric: 'gpqa',
-    label: 'GPQA-Diamond',
-    yTicks: [70, 80, 90],
-    minY: 67,
-  },
-];
+    {
+      metric: 'aime',
+      label: 'AIME 2025',
+      yTicks: [70, 80, 90, 100],
+    },
+    {
+      metric: 'gpqa',
+      label: 'GPQA-Diamond',
+      yTicks: [70, 80, 90],
+      minY: 67,
+    },
+  ];
 
 const TRAINING_MODES = [
   {
@@ -185,10 +185,10 @@ const ComparisonChart: React.FC<{
   };
   const tooltipMetrics = hovered
     ? {
-        pointX: getX(hovered.cost),
-        pointY: getY(hovered[metric]),
-        score: hovered[metric],
-      }
+      pointX: getX(hovered.cost),
+      pointY: getY(hovered[metric]),
+      score: hovered[metric],
+    }
     : null;
   const tooltipBox = (() => {
     if (!tooltipMetrics) return null;
@@ -746,30 +746,30 @@ export const Rio2014BDetail: React.FC<Rio2014BDetailProps> = ({ model, onBack })
                       <div>
                         <p className="text-sm font-semibold text-prose">Base model</p>
                       </div>
-                  </div>
-                  <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
-                </div>
-
-                <div ref={pretrainRef} className="relative z-10 flex flex-col items-center gap-2">
-                  <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rio-primary/10">
-                      <Library className="h-6 w-6 text-rio-primary" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-prose">Reinforcement Learning Pre-Training</p>
                     </div>
+                    <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
                   </div>
-                  <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
-                </div>
 
-                <div ref={routerRef} className="relative z-10 flex flex-col items-center gap-2">
-                  <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rio-primary/10">
-                      <Route className="h-6 w-6 text-rio-primary" />
-                    </span>
-                    <div>
+                  <div ref={pretrainRef} className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rio-primary/10">
+                        <Library className="h-6 w-6 text-rio-primary" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-prose">Reinforcement Learning Pre-Training</p>
+                      </div>
+                    </div>
+                    <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
+                  </div>
+
+                  <div ref={routerRef} className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rio-primary/10">
+                        <Route className="h-6 w-6 text-rio-primary" />
+                      </span>
+                      <div>
                         <p className="text-sm font-semibold text-prose">THOR Router</p>
                       </div>
                     </div>

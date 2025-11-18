@@ -47,15 +47,15 @@ interface ConnectorLayout {
 }
 
 const LABEL_POSITION_OVERRIDES: Partial<Record<string, LabelOverride>> = {
-  'Gemini 2.5 Pro': 'top-right',
+  'Gemini 3 Pro': 'top-right',
   'Gemini 2.5 Flash': 'bottom-right',
   'Claude Sonnet 4.5': 'bottom-left',
   'Gemini 2.5 Flash-Lite': { gpqa: 'bottom-right' },
 };
 
 const MODEL_COMPARISON: ModelComparisonDatum[] = [
-  { model: 'Gemini 2.5 Pro', cost: 10, gpqa: 86.4, aime: 88, color: '#9CA3AF', isRio: false },
-  { model: 'GPT-5', cost: 10, gpqa: 85.7, aime: 94.6, color: '#9CA3AF', isRio: false },
+  { model: 'Gemini 3 Pro', cost: 12, gpqa: 91.9, aime: 95.0, color: '#9CA3AF', isRio: false },
+  { model: 'GPT-5.1', cost: 10, gpqa: 88.1, aime: 94.0, color: '#9CA3AF', isRio: false },
   { model: 'Rio 2.5 Preview', cost: 0.1, gpqa: 77.2, aime: 95, color: '#1E40AF', isRio: true },
   { model: 'Gemini 2.5 Flash', cost: 2.5, gpqa: 79, aime: 78, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, color: '#9CA3AF', isRio: false },
@@ -87,18 +87,18 @@ const METRIC_CONFIGS: Array<{
   yTicks: number[];
   minY?: number;
 }> = [
-  {
-    metric: 'aime',
-    label: 'AIME 2025',
-    yTicks: [70, 80, 90, 100],
-  },
-  {
-    metric: 'gpqa',
-    label: 'GPQA-Diamond',
-    yTicks: [70, 80, 90],
-    minY: 67,
-  },
-];
+    {
+      metric: 'aime',
+      label: 'AIME 2025',
+      yTicks: [70, 80, 90, 100],
+    },
+    {
+      metric: 'gpqa',
+      label: 'GPQA-Diamond',
+      yTicks: [70, 80, 90],
+      minY: 67,
+    },
+  ];
 
 const TRAINING_MODES = [
   {
@@ -209,10 +209,10 @@ const ComparisonChart: React.FC<{
   };
   const tooltipMetrics = hovered
     ? {
-        pointX: getX(hovered.cost),
-        pointY: getY(hovered[metric]),
-        score: hovered[metric],
-      }
+      pointX: getX(hovered.cost),
+      pointY: getY(hovered[metric]),
+      score: hovered[metric],
+    }
     : null;
   const tooltipBox = (() => {
     if (!tooltipMetrics) return null;
