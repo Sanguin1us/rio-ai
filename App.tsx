@@ -25,11 +25,17 @@ function App() {
   const handleBack = () => {
     setSelectedModel(null);
   };
-  
+
   const handleNavigate = (view: View) => {
     setCurrentView(view);
     setSelectedModel(null); // Deselect model when changing main views
     window.scrollTo(0, 0);
+  };
+
+  const [showContent, setShowContent] = useState(false);
+
+  const handleHeroAnimationComplete = () => {
+    setShowContent(true);
   };
 
   const renderView = () => {
@@ -43,10 +49,14 @@ function App() {
       default:
         return (
           <>
-            <Hero onNavigate={handleNavigate} />
-            <ModelsSection onSelectModel={handleSelectModel} />
-            <SciencePlatformSection />
-            <TechDetailsSection />
+            <Hero onNavigate={handleNavigate} onAnimationComplete={handleHeroAnimationComplete} />
+            <div
+              className={`transition-opacity duration-1000 ease-out ${showContent ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <ModelsSection onSelectModel={handleSelectModel} />
+              <SciencePlatformSection />
+              <TechDetailsSection />
+            </div>
           </>
         );
     }
