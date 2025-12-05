@@ -45,10 +45,10 @@ export const LINEAGE_NODES: LineageNode[] = [
     { id: 'rio-search', label: 'Rio Search', x: 2, y: 1.5, parents: ['rio-thinking', 'rio-tool'], model: findModel('Search') },
 
     // From Visão -> Grounding, OCR, Desenho, 3D
-    { id: 'rio-grounding', label: 'Rio Grounding', x: 2, y: 3.9, parents: ['rio-visao'], model: findModel('Grounding') },
-    { id: 'rio-ocr', label: 'Rio OCR', x: 2, y: 3.1, parents: ['rio-visao'], model: findModel('Visão') }, // OCR is part of Visão usually
+    { id: 'rio-grounding', label: 'Rio Grounding', x: 2, y: 3.833, parents: ['rio-visao'], model: findModel('Grounding') },
+    { id: 'rio-ocr', label: 'Rio OCR', x: 2, y: 3.166, parents: ['rio-visao'], model: findModel('Visão') }, // OCR is part of Visão usually
     { id: 'rio-desenho', label: 'Rio Desenho', x: 2, y: 2.5, parents: ['rio-visao'], model: undefined },
-    { id: 'rio-3d', label: 'Rio 3D', x: 2, y: 4.6, parents: ['rio-visao'], model: undefined },
+    { id: 'rio-3d', label: 'Rio 3D', x: 2, y: 4.5, parents: ['rio-visao'], model: undefined },
 
     // From TTS/STT -> Voz
     { id: 'rio-voz', label: 'Rio Voz', x: 2, y: 6.5, parents: ['rio-tts', 'rio-stt'], model: findModel('Voz') },
@@ -61,7 +61,7 @@ export const LINEAGE_NODES: LineageNode[] = [
     { id: 'rio-cientista', label: 'Rio Cientista', x: 3, y: 1, parents: ['rio-thinking', 'rio-code'], model: undefined },
 
     // From Grounding -> Robótica
-    { id: 'rio-robotica', label: 'Rio Robótica', x: 3, y: 3.9, parents: ['rio-grounding'], model: undefined },
+    { id: 'rio-robotica', label: 'Rio Robótica', x: 3, y: 5, parents: ['rio-grounding', 'rio-voz'], model: undefined },
 
     // From Voz -> Música
     { id: 'rio-musica', label: 'Rio Música', x: 3, y: 6.5, parents: ['rio-voz'], model: undefined },
