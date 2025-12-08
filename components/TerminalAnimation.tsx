@@ -3,12 +3,12 @@ import React, { useState, useEffect, useRef } from 'react';
 const lines = [
   { text: '$ rio-evolve run --task "circle_packing_32"', type: 'command' },
   {
-    text: '[Briefing]: objetivo = acomodar 32 circulos; restricoes = raio minimo e area fixa da praça.',
+    text: '[Briefing]: objetivo = acomodar 32 circulos; restricoes = raio minimo e area fixa do container.',
     type: 'log',
   },
   { text: '[Seed pool]: 3 layouts campeoes recuperados do arquivo evolutivo.', type: 'log' },
   { text: '[Omni 32B]: geracao inicial concluida — 8 candidatos prontos para avaliacao.', type: 'log' },
-  { text: '[Variation::mutate]: layout A2 ajustou angulos com dados cartograficos do municipio.', type: 'dispatch' },
+  { text: '[Variation::mutate]: layout A2 ajustou angulos com restricoes geometricas locais.', type: 'dispatch' },
   { text: '[Variation::recombine]: layout B1 herdou trechos dos campeoes 2024 e 2023.', type: 'dispatch' },
   { text: '[Evaluator]: medindo folgas, simetria e aproveitamento de area...', type: 'agent' },
   { text: '[Evaluator]: B1 melhora o aproveitamento em 12.4% usando apenas 15 amostras.', type: 'success' },
@@ -18,7 +18,7 @@ const lines = [
   { text: '[Evaluator]: C0 atinge packing rate de 92.1% e estabilidade maxima.', type: 'success' },
   { text: '[Archive]: C0 promovido a campeao v2025.03 e salvo para reuso futuro.', type: 'log' },
   {
-    text: '[Rio 2.0 Evolve]: layout enviado ao time de urbanismo e registrado na memoria.',
+    text: '[Rio 2.0 Evolve]: layout exportado para producao e registrado na memoria.',
     type: 'log-bold',
   },
   { text: '$ ciclo finalizado com sucesso.', type: 'command' },

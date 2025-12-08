@@ -33,6 +33,12 @@ export const TechDetailsSection = () => {
                 <li>
                   <span className="font-semibold text-rio-primary">Rio 2.0 Preview:</span> Pós-treinado do Qwen 2.5 14B
                 </li>
+                <li>
+                  <span className="font-semibold text-rio-primary">Rio 2.5:</span> Pós-treinado do Qwen 3 Next
+                </li>
+                <li>
+                  <span className="font-semibold text-rio-primary">Rio 2.5 Preview:</span> Pós-treinado do Qwen 3 30B-A3B Thinking 2507
+                </li>
               </ul>
             </div>
           </AnimateOnScroll>

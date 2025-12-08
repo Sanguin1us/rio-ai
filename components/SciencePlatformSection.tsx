@@ -13,61 +13,57 @@ export const SciencePlatformSection = () => {
 
           <AnimateOnScroll delay={200} className="mt-12 lg:mt-0">
             <h2 className="text-3xl font-bold tracking-tight text-prose sm:text-4xl">
-              Rio 2.0 Evolve: laboratório evolutivo com o Rio 2.0 Omni
+              Rio 2.5 Evolve: laboratório evolutivo
             </h2>
             <p className="mt-4 text-lg text-prose-light">
-              O Rio 2.0 Evolve é o motor de experimentos da prefeitura. Ele transforma um pedido em português simples
-              em dezenas de propostas, coloca todas para competir em simulações reais e guarda as melhores ideias para o
-              próximo desafio.
+              O Rio 2.5 Evolve é um sistema de pesquisa algorítmica autônoma. Dado um problema claramente expresso em termos matemáticos e uma série de restrições, ele busca encontrar sozinho soluções otimizadas.
             </p>
             <p className="mt-4 text-base text-prose-light">
-              Com esse ciclo encontramos, em poucas dezenas de tentativas, uma solução otimizada para acomodar 32 círculos.
-              É a mesma tarefa clássica usada pelos laboratórios internacionais para testar frameworks evolutivos — só que
-              aqui ela nasce pronta para virar política pública.
+              Por exemplo, definimos o problema "Maximize a soma dos raios de n círculos inscritos em um quadrado escolhendo seu posicionamento".
+              O sistema gerou uma nova solução ótima, superando todos os resultados previamente conhecidos.
             </p>
             <dl className="mt-8 space-y-6">
               <div>
                 <dt>
                   <p className="font-semibold text-prose">
-                    <span className="text-rio-primary font-bold">1. Problema em linguagem comum</span>
+                    <span className="text-rio-primary font-bold">1. Definição em linguagem natural</span>
                   </p>
                 </dt>
                 <dd className="mt-1 text-base text-prose-light">
-                  A equipe descreve o desafio (“como distribuir 32 estruturas sem sobreposição”, por exemplo). O sistema
-                  identifica metas, restrições e dados relevantes.
+                  O usuário descreve o desafio em linguagem natural. O sistema
+                  converte isso em função de <em>fitness</em> e restrições rígidas.
                 </dd>
               </div>
               <div>
                 <dt>
                   <p className="font-semibold text-prose">
-                    <span className="text-rio-primary font-bold">2. Geração de candidatos</span>
+                    <span className="text-rio-primary font-bold">2. Geração de população</span>
                   </p>
                 </dt>
                 <dd className="mt-1 text-base text-prose-light">
-                  O Rio 2.0 Omni usa soluções campeãs anteriores como semente e cria variações explicadas, com custo
-                  estimado e indicadores de resultado.
+                  O Rio 2.5 gera uma solução inicial pouco otimizada, que servirá de ponto de partida.
                 </dd>
               </div>
               <div>
                 <dt>
                   <p className="font-semibold text-prose">
-                    <span className="text-rio-primary font-bold">3. Torneio e aprendizado</span>
+                    <span className="text-rio-primary font-bold">3. Torneio e evolução</span>
                   </p>
                 </dt>
                 <dd className="mt-1 text-base text-prose-light">
-                  Simuladores urbanos, séries históricas e testes automatizados avaliam cada proposta. O sistema aprende
-                  durante o processo e evita repetir combinações que não funcionam.
+                  Algoritmos genéticos cruzam e mutam os melhores candidatos. O sistema aprende quais traços levam ao
+                  sucesso e descarta rapidamente caminhos inviáveis.
                 </dd>
               </div>
               <div>
                 <dt>
                   <p className="font-semibold text-prose">
-                    <span className="text-rio-primary font-bold">4. Campeão em produção</span>
+                    <span className="text-rio-primary font-bold">4. Solução otimizada</span>
                   </p>
                 </dt>
                 <dd className="mt-1 text-base text-prose-light">
-                  A melhor solução vai para os times da prefeitura e fica registrada em um arquivo vivo. Ela pode ser
-                  reutilizada como ponto de partida em desafios futuros — o ciclo recomeça mais forte.
+                  Após centenas de iterações, a melhor solução emerge validada matematicamente.
+                  Em nossos testes, o Rio 2.5 Evolve faz o trabalho que levaria um matemático múltiplas horas ou até dias em minutos.
                 </dd>
               </div>
             </dl>
