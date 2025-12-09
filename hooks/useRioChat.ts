@@ -17,7 +17,7 @@ interface UseRioChatOptions {
 }
 
 const DEFAULT_API_URL = '/api/chat';
-const DEFAULT_MODEL = 'rio-2';
+const DEFAULT_MODEL = 'rio-2.5';
 const DEFAULT_SYSTEM_PROMPT = 'You are a helpful assistant.';
 const DEFAULT_HISTORY_LIMIT = 6;
 const DEFAULT_ERROR_MESSAGE =
