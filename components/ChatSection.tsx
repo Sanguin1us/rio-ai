@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Send, Copy, Check, Edit3, X, Zap, Sparkles, RefreshCw, ThumbsUp, ThumbsDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Send, Copy, Check, Edit3, X, Zap, Sparkles, RefreshCw, ThumbsUp, ThumbsDown, ChevronLeft, ChevronRight, Square } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Highlight, Language, themes } from 'prism-react-renderer';
 import remarkMath from 'remark-math';
@@ -471,6 +471,7 @@ export const ChatSection = () => {
     regenerate,
     navigateMessage,
     editAndResubmit,
+    stop,
   } = useRioChat({
     model: currentModel,
   });
@@ -629,21 +630,36 @@ export const ChatSection = () => {
                         ? 'Perguntar para o Flash...'
                         : 'Perguntar para o Rio 2.5...'
                   }
-                  disabled={isLoading}
-                  className="flex-1 border-none bg-transparent px-2 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 disabled:opacity-50"
+                  className="flex-1 border-none bg-transparent px-2 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0"
                 />
 
-                <button
-                  type="submit"
-                  disabled={isLoading || !input.trim()}
-                  className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 ${isFastModel
-                    ? 'bg-amber-500 text-white hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-500/25'
-                    : 'bg-rio-primary text-white hover:bg-rio-primary/90 hover:shadow-lg hover:shadow-rio-primary/25'
-                    }`}
-                  aria-label="Enviar mensagem"
-                >
-                  <Send className="h-5 w-5" />
-                </button>
+                {isLoading ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      stop();
+                    }}
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-red-500 px-3 text-white transition-all duration-300 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/25"
+                    aria-label="Interromper"
+                  >
+                    <Square className="h-4 w-4 fill-current" />
+                    <span className="text-sm font-medium">Parar</span>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!input.trim()}
+                    className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 ${isFastModel
+                      ? 'bg-amber-500 text-white hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-500/25'
+                      : 'bg-rio-primary text-white hover:bg-rio-primary/90 hover:shadow-lg hover:shadow-rio-primary/25'
+                      }`}
+                    aria-label="Enviar mensagem"
+                  >
+                    <Send className="h-5 w-5" />
+                  </button>
+                )}
               </form>
             </div>
           </div>

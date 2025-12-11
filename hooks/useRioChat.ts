@@ -213,6 +213,9 @@ export function useRioChat(options: UseRioChatOptions = {}) {
   const isLoadingRef = useRef(isLoading);
   isLoadingRef.current = isLoading;
 
+  // AbortController for canceling requests
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Derive flat messages from tree
   const messages = useMemo(() => computeFlatMessages(tree), [tree]);
 
@@ -268,6 +271,15 @@ export function useRioChat(options: UseRioChatOptions = {}) {
     console.warn('insertMessageAt is deprecated for branching.');
   }, []);
 
+  // Stop ongoing request
+  const stop = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+  }, []);
+
   // Submit a new message
   const handleSubmit = useCallback(async (event?: React.FormEvent<HTMLFormElement>) => {
     if (event) {
@@ -319,6 +331,9 @@ export function useRioChat(options: UseRioChatOptions = {}) {
     ];
 
     try {
+      // Create new abort controller for this request
+      abortControllerRef.current = new AbortController();
+
       const response = await fetch(targetApiUrl, {
         method: 'POST',
         headers: {
@@ -329,6 +344,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
           messages: payloadMessages,
           stream: false,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -350,6 +366,10 @@ export function useRioChat(options: UseRioChatOptions = {}) {
         });
       }
     } catch (error) {
+      // Don't show error message if request was aborted
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to fetch from Rio API', error);
       setTree((prevTree) => {
         const userParentId = prevTree.selectedPath[prevTree.selectedPath.length - 1];
@@ -360,6 +380,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
         };
       });
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
     }
   }, [input, tree, historyLimit, systemPrompt, targetApiUrl, model, errorMessage]);
@@ -411,6 +432,9 @@ export function useRioChat(options: UseRioChatOptions = {}) {
       ];
 
       try {
+        // Create new abort controller for this request
+        abortControllerRef.current = new AbortController();
+
         const response = await fetch(targetApiUrl, {
           method: 'POST',
           headers: {
@@ -421,6 +445,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
             messages: payloadMessages,
             stream: false,
           }),
+          signal: abortControllerRef.current.signal,
         });
 
         if (!response.ok) {
@@ -441,6 +466,10 @@ export function useRioChat(options: UseRioChatOptions = {}) {
           });
         }
       } catch (error) {
+        // Don't show error message if request was aborted
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
         console.error('Failed to fetch from Rio API', error);
         setTree((prevTree) => {
           const userNodeId = pathToUser[pathToUser.length - 1];
@@ -451,6 +480,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
           };
         });
       } finally {
+        abortControllerRef.current = null;
         setIsLoading(false);
       }
     },
@@ -510,6 +540,9 @@ export function useRioChat(options: UseRioChatOptions = {}) {
       ];
 
       try {
+        // Create new abort controller for this request
+        abortControllerRef.current = new AbortController();
+
         const response = await fetch(targetApiUrl, {
           method: 'POST',
           headers: {
@@ -520,6 +553,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
             messages: payloadMessages,
             stream: false,
           }),
+          signal: abortControllerRef.current.signal,
         });
 
         if (!response.ok) {
@@ -540,6 +574,10 @@ export function useRioChat(options: UseRioChatOptions = {}) {
           });
         }
       } catch (error) {
+        // Don't show error message if request was aborted
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
         console.error('Failed to fetch from Rio API', error);
         setTree((prevTree) => {
           const userParentId = prevTree.selectedPath[prevTree.selectedPath.length - 1];
@@ -550,6 +588,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
           };
         });
       } finally {
+        abortControllerRef.current = null;
         setIsLoading(false);
       }
     },
@@ -573,5 +612,6 @@ export function useRioChat(options: UseRioChatOptions = {}) {
     navigateMessage,
     editMessage,
     editAndResubmit,
+    stop,
   };
 }
