@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Send, Copy, Check, Edit3, X, Zap, Sparkles, RefreshCw, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Send, Copy, Check, Edit3, X, Zap, Sparkles, RefreshCw, ThumbsUp, ThumbsDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Highlight, Language, themes } from 'prism-react-renderer';
 import remarkMath from 'remark-math';
@@ -14,8 +14,6 @@ import { normalizeMathDelimiters } from '../lib/markdown';
 import { FeedbackModal, FeedbackType, FeedbackData } from './FeedbackModal';
 
 const codeTheme = themes.nightOwl;
-
-
 
 const getNodeText = (node: React.ReactNode): string => {
   if (typeof node === 'string' || typeof node === 'number') {
@@ -35,10 +33,143 @@ interface ChatBubbleProps {
   onEdit?: () => void;
   onRegenerate?: () => void;
   onFeedback?: (type: FeedbackType, message: ChatMessage) => void;
+  onNavigate?: (direction: -1 | 1) => void;
   disableActions?: boolean;
 }
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, onFeedback, disableActions }) => {
+const CodeBlock: React.FC<{
+  inline?: boolean;
+  className?: string;
+  children: React.ReactNode;
+  node?: {
+    lang?: string | null;
+  };
+  isUser: boolean;
+}> = ({ inline, className, children, node, isUser, ...codeProps }) => {
+  const [codeCopied, setCodeCopied] = useState(false);
+  const codeCopyTimeoutRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (codeCopyTimeoutRef.current) {
+        window.clearTimeout(codeCopyTimeoutRef.current);
+      }
+    },
+    []
+  );
+
+  const rawLanguage =
+    typeof node?.lang === 'string' && node.lang.trim().length > 0
+      ? node.lang.trim()
+      : className?.replace('language-', '') ?? '';
+  const displayLanguage = (rawLanguage || 'code').toLowerCase();
+  const fallbackLanguage: Language = 'tsx';
+  const language = rawLanguage.toLowerCase();
+  const prismLanguage = language ? (language as Language) : fallbackLanguage;
+  const codeTextRaw = getNodeText(children);
+  const codeText = codeTextRaw.replace(/\s+$/, '');
+  const trimmed = codeText.trim();
+  const shouldRenderAsChip =
+    !inline &&
+    trimmed.length > 0 &&
+    trimmed.length <= 40 &&
+    !trimmed.includes('\n');
+
+  const handleCopyCode = useCallback(async () => {
+    if (!codeText || typeof navigator === 'undefined' || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(codeText);
+      setCodeCopied(true);
+      if (codeCopyTimeoutRef.current) {
+        window.clearTimeout(codeCopyTimeoutRef.current);
+      }
+      codeCopyTimeoutRef.current = window.setTimeout(() => setCodeCopied(false), 1500);
+    } catch (error) {
+      console.error('Failed to copy code block', error);
+    }
+  }, [codeText]);
+
+  if (inline) {
+    return (
+      <code
+        className={['rounded bg-slate-200/80 px-1.5 py-0.5 font-mono', className]
+          .filter(Boolean)
+          .join(' ')}
+        {...codeProps}
+      >
+        {children}
+      </code>
+    );
+  }
+
+  if (shouldRenderAsChip) {
+    const chipBase =
+      'inline-flex items-center justify-center rounded-[6px] border font-mono text-[11px] leading-snug shadow-sm';
+    const chipPadding = 'px-1 py-[1px]';
+    const chipStyles = isUser
+      ? 'border-white/60 bg-white/80 text-rio-primary'
+      : 'border-slate-300/80 bg-slate-100 text-slate-700';
+
+    return <span className={`${chipBase} ${chipPadding} ${chipStyles}`}>{trimmed}</span>;
+  }
+
+  return (
+    <div className="group relative mt-3 overflow-hidden rounded-2xl border border-slate-800/80 bg-[radial-gradient(circle_at_top,_#172036,_#090b12)] text-white shadow-[0_18px_40px_-24px_rgba(8,10,20,0.9)]">
+      <div className="absolute top-1.5 left-4 right-4 flex items-center justify-between text-[11px] font-semibold text-white/70">
+        <span className="inline-flex items-center rounded-full bg-white/8 px-2.5 py-1 backdrop-blur">
+          {displayLanguage}
+        </span>
+        <button
+          type="button"
+          onClick={handleCopyCode}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/8 text-white/80 opacity-0 transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 group-hover:opacity-100"
+          aria-label="Copiar bloco de código"
+        >
+          {codeCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        </button>
+      </div>
+      <Highlight
+        theme={codeTheme}
+        code={codeText}
+        language={prismLanguage}
+      >
+        {({ className: highlightClassName, style, tokens, getLineProps, getTokenProps }) => (
+          <pre
+            className={`overflow-x-auto px-4 pb-4 pt-12 text-sm leading-relaxed ${highlightClassName}`}
+            style={{
+              ...style,
+              background: 'transparent',
+              margin: 0,
+            }}
+            {...codeProps}
+          >
+            {(() => {
+              const visibleTokens = tokens.slice();
+              while (visibleTokens.length > 0) {
+                const lastLine = visibleTokens[visibleTokens.length - 1];
+                const lastLineContent = lastLine.map((token) => token.content).join('');
+                if (lastLineContent.trim().length === 0) {
+                  visibleTokens.pop();
+                } else {
+                  break;
+                }
+              }
+              return visibleTokens;
+            })().map((line, i) => (
+              <div key={i} {...getLineProps({ line })}>
+                {line.map((token, key) => (
+                  <span key={key} {...getTokenProps({ token })} />
+                ))}
+              </div>
+            ))}
+          </pre>
+        )}
+      </Highlight>
+    </div>
+  );
+};
+
+const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, onFeedback, onNavigate, disableActions }) => {
   const isUser = message.role === 'user';
   const [copiedBubble, setCopiedBubble] = useState(false);
   const bubbleCopyTimeoutRef = useRef<number | null>(null);
@@ -67,137 +198,6 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
     }
   }, [message.content]);
 
-  const CodeBlock: React.FC<{
-    inline?: boolean;
-    className?: string;
-    children: React.ReactNode;
-    node?: {
-      lang?: string | null;
-    };
-  }> = ({ inline, className, children, node, ...codeProps }) => {
-    const [codeCopied, setCodeCopied] = useState(false);
-    const codeCopyTimeoutRef = useRef<number | null>(null);
-
-    useEffect(
-      () => () => {
-        if (codeCopyTimeoutRef.current) {
-          window.clearTimeout(codeCopyTimeoutRef.current);
-        }
-      },
-      []
-    );
-
-    const rawLanguage =
-      typeof node?.lang === 'string' && node.lang.trim().length > 0
-        ? node.lang.trim()
-        : className?.replace('language-', '') ?? '';
-    const displayLanguage = (rawLanguage || 'code').toLowerCase();
-    const fallbackLanguage: Language = 'tsx';
-    const language = rawLanguage.toLowerCase();
-    const prismLanguage = language ? (language as Language) : fallbackLanguage;
-    const codeTextRaw = getNodeText(children);
-    const codeText = codeTextRaw.replace(/\s+$/, '');
-    const trimmed = codeText.trim();
-    const shouldRenderAsChip =
-      !inline &&
-      trimmed.length > 0 &&
-      trimmed.length <= 40 &&
-      !trimmed.includes('\n');
-
-    const handleCopyCode = useCallback(async () => {
-      if (!codeText || typeof navigator === 'undefined' || !navigator.clipboard) return;
-      try {
-        await navigator.clipboard.writeText(codeText);
-        setCodeCopied(true);
-        if (codeCopyTimeoutRef.current) {
-          window.clearTimeout(codeCopyTimeoutRef.current);
-        }
-        codeCopyTimeoutRef.current = window.setTimeout(() => setCodeCopied(false), 1500);
-      } catch (error) {
-        console.error('Failed to copy code block', error);
-      }
-    }, [codeText]);
-
-    if (inline) {
-      return (
-        <code
-          className={['rounded bg-slate-200/80 px-1.5 py-0.5 font-mono', className]
-            .filter(Boolean)
-            .join(' ')}
-          {...codeProps}
-        >
-          {children}
-        </code>
-      );
-    }
-
-    if (shouldRenderAsChip) {
-      const chipBase =
-        'inline-flex items-center justify-center rounded-[6px] border font-mono text-[11px] leading-snug shadow-sm';
-      const chipPadding = 'px-1 py-[1px]';
-      const chipStyles = isUser
-        ? 'border-white/60 bg-white/80 text-rio-primary'
-        : 'border-slate-300/80 bg-slate-100 text-slate-700';
-
-      return <span className={`${chipBase} ${chipPadding} ${chipStyles}`}>{trimmed}</span>;
-    }
-
-    return (
-      <div className="group relative mt-3 overflow-hidden rounded-2xl border border-slate-800/80 bg-[radial-gradient(circle_at_top,_#172036,_#090b12)] text-white shadow-[0_18px_40px_-24px_rgba(8,10,20,0.9)]">
-        <div className="absolute top-1.5 left-4 right-4 flex items-center justify-between text-[11px] font-semibold text-white/70">
-          <span className="inline-flex items-center rounded-full bg-white/8 px-2.5 py-1 backdrop-blur">
-            {displayLanguage}
-          </span>
-          <button
-            type="button"
-            onClick={handleCopyCode}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/8 text-white/80 opacity-0 transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 group-hover:opacity-100"
-            aria-label="Copiar bloco de código"
-          >
-            {codeCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          </button>
-        </div>
-        <Highlight
-          theme={codeTheme}
-          code={codeText}
-          language={prismLanguage}
-        >
-          {({ className: highlightClassName, style, tokens, getLineProps, getTokenProps }) => (
-            <pre
-              className={`overflow-x-auto px-4 pb-4 pt-12 text-sm leading-relaxed ${highlightClassName}`}
-              style={{
-                ...style,
-                background: 'transparent',
-                margin: 0,
-              }}
-              {...codeProps}
-            >
-              {(() => {
-                const visibleTokens = tokens.slice();
-                while (visibleTokens.length > 0) {
-                  const lastLine = visibleTokens[visibleTokens.length - 1];
-                  const lastLineContent = lastLine.map((token) => token.content).join('');
-                  if (lastLineContent.trim().length === 0) {
-                    visibleTokens.pop();
-                  } else {
-                    break;
-                  }
-                }
-                return visibleTokens;
-              })().map((line, i) => (
-                <div key={i} {...getLineProps({ line })}>
-                  {line.map((token, key) => (
-                    <span key={key} {...getTokenProps({ token })} />
-                  ))}
-                </div>
-              ))}
-            </pre>
-          )}
-        </Highlight>
-      </div>
-    );
-  };
-
   const actionButtonClass =
     'inline-flex h-8 w-8 items-center justify-center text-slate-400 transition hover:text-rio-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rio-primary/50 disabled:opacity-50';
 
@@ -219,7 +219,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
                 a: ({ node, ...anchorProps }) => (
                   <a {...anchorProps} rel="noopener noreferrer" target="_blank" />
                 ),
-                code: CodeBlock,
+                // @ts-ignore
+                code: (props) => <CodeBlock {...props} isUser={isUser} />,
                 blockquote: ({ node, className, children, ...blockquoteProps }) => (
                   <blockquote
                     className={[
@@ -325,6 +326,19 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
             : 'justify-start text-slate-500 opacity-0 group-hover:opacity-100'
             }`}
         >
+          {!isUser && (
+            <button
+              type="button"
+              onClick={handleCopyMessage}
+              disabled={disableActions || copiedBubble}
+              className={actionButtonClass}
+              aria-label="Copiar mensagem"
+              title="Copiar mensagem"
+            >
+              {copiedBubble ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </button>
+          )}
+
           {!isUser && onFeedback && (
             <>
               <button
@@ -348,6 +362,19 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
                 <ThumbsDown className="h-4 w-4" />
               </button>
             </>
+          )}
+
+          {!isUser && onRegenerate && (
+            <button
+              type="button"
+              onClick={onRegenerate}
+              disabled={disableActions}
+              className={actionButtonClass}
+              aria-label="Tentar novamente"
+              title="Tentar novamente"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
           )}
 
           {isUser && onRegenerate ? (
@@ -376,16 +403,44 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
             </button>
           ) : null}
 
-          <button
-            type="button"
-            onClick={handleCopyMessage}
-            disabled={disableActions || copiedBubble}
-            className={actionButtonClass}
-            aria-label="Copiar mensagem"
-            title="Copiar mensagem"
-          >
-            {copiedBubble ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          </button>
+          {isUser && (
+            <button
+              type="button"
+              onClick={handleCopyMessage}
+              disabled={disableActions || copiedBubble}
+              className={actionButtonClass}
+              aria-label="Copiar mensagem"
+              title="Copiar mensagem"
+            >
+              {copiedBubble ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </button>
+          )}
+
+          {message.siblingCount > 1 && onNavigate && (
+            <div className="flex items-center gap-1 ml-2 text-slate-400 select-none">
+              <button
+                type="button"
+                onClick={() => onNavigate(-1)}
+                disabled={disableActions || message.siblingIndex <= 0}
+                className="hover:text-rio-primary disabled:opacity-30 disabled:hover:text-slate-400"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+
+              <span className="text-[10px] tabular-nums font-semibold min-w-[20px] text-center">
+                {message.siblingIndex + 1}/{message.siblingCount}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => onNavigate(1)}
+                disabled={disableActions || message.siblingIndex >= message.siblingCount - 1}
+                className="hover:text-rio-primary disabled:opacity-30 disabled:hover:text-slate-400"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -414,9 +469,9 @@ export const ChatSection = () => {
     setInput,
     isLoading,
     handleSubmit,
-    removeMessageAt,
-    insertMessageAt,
     regenerate,
+    removeMessageAt,
+    insertMessageAt
   } = useRioChat({
     model: currentModel,
   });
@@ -483,94 +538,6 @@ export const ChatSection = () => {
     }
   };
 
-  const handleRegenerate = useCallback(
-    (index: number) => {
-      if (isLoading) return;
-      const targetMessage = messages[index];
-      if (!targetMessage || targetMessage.role !== 'user') return;
-
-      // Remove the user message and any subsequent messages (like the old assistant response)
-      // Then re-insert the user message to trigger a new submission logic if needed,
-      // OR simpler: just set input and remove from that index onwards.
-      // But standard "Regenerate" usually keeps history up to that point.
-      // Simplest approach: Remove EVERYTHING from this message onwards, put text in input, and auto-submit?
-      // OR: Remove assistant reply (if exists) and re-call submit with current history.
-
-      // Let's go with: Set input to this message, remove this message and anything after, and submit.
-      // This behaves like "Edit and Resend" but without needing to type.
-
-      // Wait, "Regenerate" on a USER message is basically "Resend".
-      // "Regenerate" on an ASSISTANT message is "Try again".
-      // The user asked for it on USER messages. So it's "Resend".
-
-      setInput(targetMessage.content);
-      // We need to wait for state update to submit. 
-      // Actually, useRioChat's handleSubmit uses `input` state. 
-      // So we set input, clear messages from index, and then we need to trigger submit.
-      // But we can't await setInput.
-      // Alternative: useRioChat could expose a `reload` or we manually handle it.
-
-      // HACK: For now, I'll just load it into input and let user press enter?
-      // User said "Tentar novamente". Usually implies auto-action.
-      // I'll implement "Load into input and remove old" for now (same as Edit but immediate submit would be tricky without refactoring hook).
-      // Let's do: Set Input -> Remove Messages -> Manually trigger submit? 
-      // `handleSubmit` takes event.
-      // Let's implement a `handleResend` wrapper.
-
-      // Actually, looking at `useRioChat`, `handleSubmit` adds the `input` to messages using `setMessages`.
-      // So if I want to "Resend", I should remove the old one first.
-
-      const resend = async () => {
-        removeMessageAt(index);
-        // If there was an assistant reply after, it needs to go too.
-        // `removeMessageAt` implementation in hook: 
-        // const next = prev.slice(0, index).concat(prev.slice(index + 1));
-        // So it only removes ONE.
-        // If I want to remove the user message AND the next assistant message:
-        if (index < messages.length - 1) {
-          removeMessageAt(index); // This shifts indices! 
-          // Actually if we remove index, the next one becomes index.
-          // So calling removeMessageAt(index) TWICE works if there is a next one.
-        }
-
-        // Code below handles this logic cleaner in handleRegenerate wrapper?
-        // No, I can't easily change hook state and submit in one go without a useEffect or a customized hook method.
-        // I will stick to "Edit" behavior but maybe just leave it as "Edit" if "Regenerate" is too complex?
-        // No, requested "Tentar novamente".
-
-        // Let's pass a specialized handler.
-      };
-    },
-    [isLoading, messages, removeMessageAt, setInput]
-  );
-
-  // Refined Logic for Resend:
-  // Since I can't easily auto-submit, I'll make "Regenerate" == "Load into input box & delete old one", 
-  // essentially "Edit" but I'll label it as requested. 
-  // Wait, if it's just "Edit", why a separate button?
-  // "Tentar novamente" might mean "Don't change text, just run it again".
-  // I will basically duplicate the Edit logic for now but perhaps auto-focus or distinct icon.
-  // The user asked for a BUTTON "Tentar Novamente".
-
-  // REAL IMPLEMENTATION OF RESEND:
-  // 1. Delete message (and subsequent reply).
-  // 2. Set Input.
-  // 3. (User presses enter).
-  // This is safest given current hooks.
-
-  // Improved plan:
-  // I'll reuse `handleEditMessage` logic but with the new button.
-  // Actually, I can allow the user to modify the text if they want.
-  // But "Regenerate" implies "Just do it".
-  // Let's stick to the visual request first: Add button.
-  // Implementation: I will wire it to `handleEditMessage` for now because that effectively allows "Tentar Novamente" (by pressing enter immediately).
-
-  // Okay, I will implement a distinct `handleResend` that calls `handleEditMessage` internally for now to be safe.
-
-  const handleResend = (index: number) => {
-    handleEditMessage(index);
-  };
-
   const handleFeedback = (type: FeedbackType, message: ChatMessage) => {
     setFeedbackState({
       isOpen: true,
@@ -601,7 +568,13 @@ export const ChatSection = () => {
                   key={`${index}-${msg.role}`}
                   message={msg}
                   disableActions={isLoading}
-                  onRegenerate={msg.role === 'user' ? () => regenerate(index) : undefined}
+                  onRegenerate={
+                    msg.role === 'user'
+                      ? () => regenerate(index)
+                      : index > 0 && messages[index - 1].role === 'user'
+                        ? () => regenerate(index - 1)
+                        : undefined
+                  }
                   onEdit={msg.role === 'user' ? () => handleEditMessage(index) : undefined}
                   onFeedback={handleFeedback}
                 />

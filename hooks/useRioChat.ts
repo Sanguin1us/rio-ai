@@ -5,6 +5,10 @@ export type ChatRole = 'user' | 'assistant';
 export interface ChatMessage {
   role: ChatRole;
   content: string;
+  // Branching fields (optional for backward compatibility)
+  id?: string;
+  siblingIndex?: number;
+  siblingCount?: number;
 }
 
 interface UseRioChatOptions {
@@ -77,7 +81,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
     [setMessages]
   );
 
-  const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = useCallback(async (event?: React.FormEvent<HTMLFormElement>) => {
     if (event) {
       event.preventDefault();
     }
@@ -137,7 +141,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [input, isLoading, messages, historyLimit, systemPrompt, targetApiUrl, model, errorMessage]);
 
   const regenerate = useCallback(
     async (index: number) => {
@@ -208,6 +212,15 @@ export function useRioChat(options: UseRioChatOptions = {}) {
     ]
   );
 
+  // Placeholder for future branching - currently no-ops
+  const navigateMessage = useCallback((messageId: string, direction: -1 | 1) => {
+    // Branching navigation not implemented in this simplified version
+  }, []);
+
+  const editMessage = useCallback((messageId: string, newContent: string) => {
+    // For now, this is a no-op. The ChatSection handles editing via removeMessageAt.
+  }, []);
+
   return {
     messages,
     input,
@@ -217,5 +230,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
     insertMessageAt,
     handleSubmit,
     regenerate,
+    navigateMessage,
+    editMessage,
   };
 }
