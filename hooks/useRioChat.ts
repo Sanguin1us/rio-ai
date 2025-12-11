@@ -387,6 +387,13 @@ export function useRioChat(options: UseRioChatOptions = {}) {
       // Get the path up to and including the user message
       const pathToUser = tree.selectedPath.slice(0, userMessageIndex + 1);
 
+      // Immediately truncate path to hide the old assistant response
+      // This makes the thinking animation appear in place of the old message
+      setTree((prevTree) => ({
+        ...prevTree,
+        selectedPath: pathToUser,
+      }));
+
       // Prepare messages for API
       const historyMessages = pathToUser.map((id) => {
         const node = tree.nodes.get(id);
