@@ -114,7 +114,7 @@ const CodeBlock: React.FC<{
   }
 
   return (
-    <div className="group relative mt-3 w-full overflow-x-auto rounded-2xl border border-slate-800/80 bg-[radial-gradient(circle_at_top,_#172036,_#090b12)] text-white shadow-[0_18px_40px_-24px_rgba(8,10,20,0.9)]">
+    <div className="group relative mt-3 w-full overflow-x-auto rounded-2xl border border-slate-800/80 bg-[radial-gradient(circle_at_top,_#172036,_#090b12)] pb-2 text-white shadow-[0_18px_40px_-24px_rgba(8,10,20,0.9)] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:mx-3 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-500/60 [&::-webkit-scrollbar-thumb:hover]:bg-slate-400/70 [&::-webkit-scrollbar-button]:hidden">
       <div className="absolute top-1.5 left-4 right-4 flex items-center justify-between text-[11px] font-semibold text-white/70">
         <span className="inline-flex items-center rounded-full bg-white/8 px-2.5 py-1 backdrop-blur">
           {displayLanguage}
