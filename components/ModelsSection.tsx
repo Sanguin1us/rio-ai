@@ -89,68 +89,95 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({ onSelectModel }) =
         {/* Mobile Fallback / Detailed Grid View */}
         {/* Mobile Fallback / Detailed Grid View */}
         <div className="mt-12">
-          {!isCatalogOpen ? (
-            <div className="flex justify-center py-8">
-              <button
-                onClick={() => setIsCatalogOpen(true)}
-                className="group relative overflow-hidden rounded-full bg-gradient-to-r from-rio-primary via-blue-600 to-rio-primary bg-[length:200%_auto] px-8 py-4 font-semibold text-white shadow-lg transition-all duration-500 hover:bg-[position:right_center] hover:shadow-xl hover:scale-105 active:scale-95"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="relative flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
-                    <span className="relative inline-flex h-3 w-3 rounded-full bg-white"></span>
-                  </span>
-                  <span className="text-lg tracking-wide">Catálogo Completo</span>
-                  <ChevronDown className="h-5 w-5 transition-transform duration-300 group-hover:translate-y-1" />
+          {/* Button Toggle Wrapper */}
+          <div
+            className={`flex justify-center transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isCatalogOpen
+                ? 'max-h-0 opacity-0 scale-90 overflow-hidden'
+                : 'max-h-40 opacity-100 scale-100 py-8'
+              }`}
+          >
+            <button
+              onClick={() => setIsCatalogOpen(true)}
+              className="group relative overflow-hidden rounded-full bg-gradient-to-r from-rio-primary via-blue-600 to-rio-primary bg-[length:200%_auto] px-10 py-5 font-semibold text-white shadow-xl transition-all duration-500 hover:bg-[position:right_center] hover:shadow-2xl hover:scale-105 active:scale-95"
+            >
+              <div className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 blur-md"></div>
+              <div className="flex items-center gap-4 relative z-10">
+                <span className="relative flex h-4 w-4">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex h-4 w-4 rounded-full bg-emerald-400 border-2 border-white"></span>
+                </span>
+                <span className="text-xl tracking-wide font-bold text-shadow-sm">Explorar Catálogo Completo</span>
+                <div className="bg-white/20 p-1 rounded-full group-hover:bg-white/30 transition-colors">
+                  <ChevronDown className="h-6 w-6 transition-transform duration-500 group-hover:rotate-180" />
                 </div>
-              </button>
-            </div>
-          ) : (
-            <div className="animate-slideIn">
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
-                <button
-                  onClick={() => setIsCatalogOpen(false)}
-                  className="group flex items-center gap-2 text-xl font-semibold text-prose hover:text-rio-primary transition-colors"
-                >
-                  Catálogo Completo
-                  <ChevronUp className="h-5 w-5 text-slate-400 transition-transform group-hover:-translate-y-1 group-hover:text-rio-primary" />
-                </button>
+              </div>
+            </button>
+          </div>
 
-                {/* Simple Category Filter */}
-                <div className="flex gap-2 overflow-x-auto pb-2 w-full sm:w-auto no-scrollbar justify-center sm:justify-start">
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200 ${selectedCategory === category
-                        ? 'bg-rio-primary text-white'
-                        : 'bg-white text-prose hover:bg-slate-100 border border-slate-200'
-                        }`}
-                    >
-                      {category}
-                    </button>
+          {/* Expandable Content Wrapper */}
+          <div
+            className={`grid transition-[grid-template-rows,opacity,transform] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCatalogOpen
+                ? 'grid-rows-[1fr] opacity-100 translate-y-0'
+                : 'grid-rows-[0fr] opacity-0 translate-y-8'
+              }`}
+          >
+            <div className="overflow-hidden min-h-0">
+              <div className="pt-8 animate-slideIn">
+                <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4 px-2">
+                  <button
+                    onClick={() => setIsCatalogOpen(false)}
+                    className="group flex items-center gap-3 text-2xl font-bold text-prose hover:text-rio-primary transition-colors duration-300"
+                  >
+                    <span>Catálogo Completo</span>
+                    <div className="p-1.5 rounded-full bg-slate-100 group-hover:bg-rio-primary/10 transition-colors">
+                      <ChevronUp className="h-6 w-6 text-slate-400 transition-transform group-hover:-translate-y-0.5 group-hover:text-rio-primary" />
+                    </div>
+                  </button>
+
+                  {/* Category Filter */}
+                  <div className="flex gap-2 overflow-x-auto pb-2 w-full sm:w-auto no-scrollbar justify-center sm:justify-start">
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => setSelectedCategory(category)}
+                        className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${selectedCategory === category
+                            ? 'bg-rio-primary text-white shadow-md ring-2 ring-rio-primary ring-offset-2'
+                            : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 hover:border-rio-primary/30'
+                          }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 pb-8">
+                  {filteredModels.map((model, index) => (
+                    <AnimateOnScroll key={model.name} delay={index * 50} duration="duration-700">
+                      <ModelCard model={model} onSelectModel={onSelectModel} />
+                    </AnimateOnScroll>
                   ))}
                 </div>
-              </div>
 
-              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredModels.map((model, index) => (
-                  <AnimateOnScroll key={model.name} delay={index * 50} duration="duration-500">
-                    <ModelCard model={model} onSelectModel={onSelectModel} />
-                  </AnimateOnScroll>
-                ))}
-              </div>
-
-              <div className="mt-8 flex justify-center">
-                <button
-                  onClick={() => setIsCatalogOpen(false)}
-                  className="text-sm font-medium text-slate-500 hover:text-rio-primary transition-colors flex items-center gap-1"
-                >
-                  Fechar Catálogo <ChevronUp className="w-4 h-4" />
-                </button>
+                <div className="flex justify-center pb-8">
+                  <button
+                    onClick={() => {
+                      setIsCatalogOpen(false);
+                      // Optional: scroll slightly up if needed, but keeping context is usually better
+                      const element = document.getElementById('modelos');
+                      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                    className="group flex flex-col items-center gap-2 text-sm font-semibold text-slate-400 hover:text-rio-primary transition-colors duration-300"
+                  >
+                    <span className="uppercase tracking-widest text-xs">Fechar Visualização</span>
+                    <div className="p-3 rounded-full bg-white shadow-md border border-slate-100 group-hover:shadow-lg group-hover:-translate-y-1 transition-all">
+                      <ChevronUp className="w-5 h-5" />
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </section>
