@@ -51,17 +51,18 @@ interface ConnectorLayout {
 
 const LABEL_POSITION_OVERRIDES: Partial<Record<string, LabelOverride>> = {
   'Gemini 3 Pro': 'top-left',
-  'GPT-5.2': 'top-right',
-  'Gemini 2.5 Flash': 'bottom-right',
+  'GPT-5.2': 'bottom-right',
+  'Gemini 3 Flash': 'bottom-right',
   'Claude Sonnet 4.5': 'bottom-left',
   'Gemini 2.5 Flash-Lite': { gpqa: 'bottom-right' },
+  'GPT-5 mini': { aime: 'bottom-right' },
 };
 
 const MODEL_COMPARISON: ModelComparisonDatum[] = [
   { model: 'Gemini 3 Pro', cost: 12, gpqa: 91.9, aime: 95.0, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5.2', cost: 14, gpqa: 92.4, aime: 100.0, color: '#9CA3AF', isRio: false },
   { model: 'Rio 2.5 Preview', cost: 0.1, gpqa: 77.2, aime: 95, color: '#1E40AF', isRio: true },
-  { model: 'Gemini 2.5 Flash', cost: 2.5, gpqa: 79, aime: 78, color: '#9CA3AF', isRio: false },
+  { model: 'Gemini 3 Flash', cost: 3, gpqa: 90.4, aime: 95.2, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, color: '#9CA3AF', isRio: false },
   { model: 'Gemini 2.5 Flash-Lite', cost: 0.4, gpqa: 71, aime: 69, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5 nano', cost: 0.4, gpqa: 71.2, aime: 85.2, color: '#9CA3AF', isRio: false },
@@ -236,7 +237,7 @@ const ComparisonChart: React.FC<{
   })();
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 sm:p-5">
+    <div className="rounded-3xl bg-white/80 p-4 sm:p-5">
       <div className="text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.5em] text-rio-primary">{label}</p>
       </div>
@@ -568,12 +569,7 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                 <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-rio-primary/10 blur-2xl" />
               </div>
               <div className="relative flex h-full flex-col gap-6">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rio-primary">Comparativo externo</p>
-                  <p className="mt-2 text-sm text-prose-light">
-                    Os gráficos mostram o custo por 1M de output tokens no eixo X (escala logarítmica) e as pontuações para os benchmarks AIME 2025 e GPQA-Diamond no eixo Y.
-                  </p>
-                </div>
+
                 <div className="grid gap-4 lg:grid-cols-2">
                   {METRIC_CONFIGS.map((config) => (
                     <ComparisonChart key={config.metric} {...config} />

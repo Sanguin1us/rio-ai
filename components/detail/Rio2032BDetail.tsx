@@ -29,7 +29,7 @@ const BENCHMARKS_RIO25: Array<{ metric: string; score: string; note?: string }> 
   { metric: 'LiveCodeBench v6', score: '85,0' },
 ];
 
-type ComparisonMetric = 'gpqa' | 'aime';
+type ComparisonMetric = 'gpqa' | 'aime' | 'livebench';
 
 type LabelPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 type LabelOverride = LabelPosition | Partial<Record<ComparisonMetric, LabelPosition>>;
@@ -39,6 +39,7 @@ type ModelComparisonDatum = {
   cost: number;
   gpqa: number;
   aime: number;
+  livebench: number;
   color: string;
   isRio: boolean;
 };
@@ -62,34 +63,36 @@ interface ConnectorLayout {
 
 const LABEL_POSITION_OVERRIDES: Partial<Record<string, LabelOverride>> = {
   'Gemini 3 Pro': 'top-left',
-  'GPT-5.2': 'top-right',
-  'Gemini 2.5 Flash': 'bottom-right',
-  'Claude Sonnet 4.5': 'bottom-left',
+  'GPT-5.2': { gpqa: 'bottom-right', aime: 'bottom-right', livebench: 'bottom-left' },
+  'Gemini 3 Flash': 'bottom-right',
+  'Claude Sonnet 4.5': { gpqa: 'bottom-left', aime: 'bottom-left', livebench: 'top-right' },
   'Gemini 2.5 Flash-Lite': { gpqa: 'bottom-right' },
+  'GPT-5 mini': { aime: 'bottom-right', livebench: 'bottom-right' },
+  'Claude Haiku 4.5': { livebench: 'bottom-right' },
 };
 
 const MODEL_COMPARISON_RIO20: ModelComparisonDatum[] = [
-  { model: 'Gemini 3 Pro', cost: 12, gpqa: 91.9, aime: 95.0, color: '#9CA3AF', isRio: false },
-  { model: 'GPT-5.2', cost: 14, gpqa: 92.4, aime: 100.0, color: '#9CA3AF', isRio: false },
-  { model: 'Rio 2.0', cost: 0.3, gpqa: 77.1, aime: 91.2, color: '#1E40AF', isRio: true },
-  { model: 'Gemini 2.5 Flash', cost: 2.5, gpqa: 79, aime: 78, color: '#9CA3AF', isRio: false },
-  { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, color: '#9CA3AF', isRio: false },
-  { model: 'Gemini 2.5 Flash-Lite', cost: 0.4, gpqa: 71, aime: 69, color: '#9CA3AF', isRio: false },
-  { model: 'GPT-5 nano', cost: 0.4, gpqa: 71.2, aime: 85.2, color: '#9CA3AF', isRio: false },
-  { model: 'Claude Sonnet 4.5', cost: 15, gpqa: 83.4, aime: 87, color: '#9CA3AF', isRio: false },
-  { model: 'Claude Haiku 4.5', cost: 5, gpqa: 73, aime: 80.7, color: '#9CA3AF', isRio: false },
+  { model: 'Gemini 3 Pro', cost: 12, gpqa: 91.9, aime: 95.0, livebench: 74.86, color: '#9CA3AF', isRio: false },
+  { model: 'GPT-5.2', cost: 14, gpqa: 92.4, aime: 100.0, livebench: 73.61, color: '#9CA3AF', isRio: false },
+  { model: 'Rio 2.0', cost: 0.3, gpqa: 77.1, aime: 91.2, livebench: 62.3, color: '#1E40AF', isRio: true },
+  { model: 'Gemini 3 Flash', cost: 3, gpqa: 90.4, aime: 95.2, livebench: 73.62, color: '#9CA3AF', isRio: false },
+  { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, livebench: 69.33, color: '#9CA3AF', isRio: false },
+  { model: 'Gemini 2.5 Flash-Lite', cost: 0.4, gpqa: 71, aime: 69, livebench: 48.07, color: '#9CA3AF', isRio: false },
+  { model: 'GPT-5 nano', cost: 0.4, gpqa: 71.2, aime: 85.2, livebench: 53.87, color: '#9CA3AF', isRio: false },
+  { model: 'Claude Sonnet 4.5', cost: 15, gpqa: 83.4, aime: 87, livebench: 71.83, color: '#9CA3AF', isRio: false },
+  { model: 'Claude Haiku 4.5', cost: 5, gpqa: 73, aime: 80.7, livebench: 64.28, color: '#9CA3AF', isRio: false },
 ];
 
 const MODEL_COMPARISON_RIO25: ModelComparisonDatum[] = [
-  { model: 'Gemini 3 Pro', cost: 12, gpqa: 91.9, aime: 95.0, color: '#9CA3AF', isRio: false },
-  { model: 'GPT-5.2', cost: 14, gpqa: 92.4, aime: 100.0, color: '#9CA3AF', isRio: false },
-  { model: 'Rio 2.5', cost: 0.15, gpqa: 84.1, aime: 95.4, color: '#1E40AF', isRio: true },
-  { model: 'Gemini 2.5 Flash', cost: 2.5, gpqa: 79, aime: 78, color: '#9CA3AF', isRio: false },
-  { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, color: '#9CA3AF', isRio: false },
-  { model: 'Gemini 2.5 Flash-Lite', cost: 0.4, gpqa: 71, aime: 69, color: '#9CA3AF', isRio: false },
-  { model: 'GPT-5 nano', cost: 0.4, gpqa: 71.2, aime: 85.2, color: '#9CA3AF', isRio: false },
-  { model: 'Claude Sonnet 4.5', cost: 15, gpqa: 83.4, aime: 87, color: '#9CA3AF', isRio: false },
-  { model: 'Claude Haiku 4.5', cost: 5, gpqa: 73, aime: 80.7, color: '#9CA3AF', isRio: false },
+  { model: 'Gemini 3 Pro', cost: 12, gpqa: 91.9, aime: 95.0, livebench: 74.86, color: '#9CA3AF', isRio: false },
+  { model: 'GPT-5.2', cost: 14, gpqa: 92.4, aime: 100.0, livebench: 73.61, color: '#9CA3AF', isRio: false },
+  { model: 'Rio 2.5', cost: 0.15, gpqa: 84.1, aime: 95.4, livebench: 66.3, color: '#1E40AF', isRio: true },
+  { model: 'Gemini 3 Flash', cost: 3, gpqa: 90.4, aime: 95.2, livebench: 73.62, color: '#9CA3AF', isRio: false },
+  { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, livebench: 69.33, color: '#9CA3AF', isRio: false },
+  { model: 'Gemini 2.5 Flash-Lite', cost: 0.4, gpqa: 71, aime: 69, livebench: 48.07, color: '#9CA3AF', isRio: false },
+  { model: 'GPT-5 nano', cost: 0.4, gpqa: 71.2, aime: 85.2, livebench: 53.87, color: '#9CA3AF', isRio: false },
+  { model: 'Claude Sonnet 4.5', cost: 15, gpqa: 83.4, aime: 87, livebench: 71.83, color: '#9CA3AF', isRio: false },
+  { model: 'Claude Haiku 4.5', cost: 5, gpqa: 73, aime: 80.7, livebench: 64.28, color: '#9CA3AF', isRio: false },
 ];
 
 const COST_TICKS = [0.1, 1, 10];
@@ -124,6 +127,12 @@ const METRIC_CONFIGS: Array<{
       label: 'GPQA-Diamond',
       yTicks: [70, 80, 90],
       minY: 67,
+    },
+    {
+      metric: 'livebench',
+      label: 'LiveBench',
+      yTicks: [50, 60, 70, 80],
+      minY: 45,
     },
   ];
 
@@ -232,7 +241,7 @@ const ComparisonChart: React.FC<{
   })();
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 sm:p-5">
+    <div className="rounded-3xl bg-white/80 p-4 sm:p-5">
       <div className="text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.5em] text-rio-primary">{label}</p>
       </div>
@@ -576,15 +585,12 @@ export const Rio2032BDetail: React.FC<Rio2032BDetailProps> = ({ model, onBack })
                 <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-rio-primary/10 blur-2xl" />
               </div>
               <div className="relative flex h-full flex-col gap-6">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rio-primary">Comparativo externo</p>
-                  <p className="mt-2 text-sm text-prose-light">
-                    Os gráficos mostram o custo por 1M de output tokens no eixo X (escala logarítmica) e as pontuações para os benchmarks AIME 2025 e GPQA-Diamond no eixo Y.
-                  </p>
-                </div>
+
                 <div className="grid gap-4 lg:grid-cols-2">
-                  {METRIC_CONFIGS.map((config) => (
-                    <ComparisonChart key={config.metric} {...config} data={comparisonData} />
+                  {METRIC_CONFIGS.filter(config => config.metric !== 'livebench' || model.name === 'Rio 2.5').map((config) => (
+                    <div key={config.metric} className={config.metric === 'livebench' ? 'lg:col-span-2' : ''}>
+                      <ComparisonChart {...config} data={comparisonData} />
+                    </div>
                   ))}
                 </div>
               </div>
