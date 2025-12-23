@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Model } from '../../types';
+import type { Model } from '../../types/index';
 
 interface DetailSpecsProps {
   model: Model;
@@ -35,7 +35,7 @@ const createLink = (label: string, url: string, className: string) => (
 );
 
 export const DetailSpecs: React.FC<DetailSpecsProps> = ({ model }) => {
-  const isRioPreview = model.name === 'Rio 2.5 Preview';
+  const isRioOpen = model.name === 'Rio 2.5 Open';
   const linkClass = 'text-rio-primary hover:underline';
   const createLinkedValue = (label: string, url?: string) =>
     url ? createLink(label, url, linkClass) : label;
@@ -44,26 +44,23 @@ export const DetailSpecs: React.FC<DetailSpecsProps> = ({ model }) => {
     ? createLinkedValue(
         model.baseModel,
         model.baseModelUrl ??
-          (isRioPreview ? 'https://huggingface.co/Qwen/Qwen3-30B-A3B-Thinking-2507' : undefined)
+          (isRioOpen ? 'https://huggingface.co/Qwen/Qwen3-30B-A3B-Thinking-2507' : undefined)
       )
     : undefined;
 
   const licenseLabel =
-    model.license ?? (isRioPreview ? 'Creative Commons Attribution 4.0' : undefined);
+    model.license ?? (isRioOpen ? 'Creative Commons Attribution 4.0' : undefined);
   const licenseValue = licenseLabel
     ? createLinkedValue(
         licenseLabel,
         model.licenseUrl ??
-          (isRioPreview ? 'https://creativecommons.org/licenses/by/4.0/deed.en' : undefined)
+          (isRioOpen ? 'https://creativecommons.org/licenses/by/4.0/deed.en' : undefined)
       )
     : undefined;
 
-  const datasetLinkNodes =
-    model.datasetLinks?.length
-      ? model.datasetLinks.map((dataset) =>
-          createLink(dataset.label, dataset.url, linkClass)
-        )
-      : isRioPreview
+  const datasetLinkNodes = model.datasetLinks?.length
+    ? model.datasetLinks.map((dataset) => createLink(dataset.label, dataset.url, linkClass))
+    : isRioOpen
       ? [
           createLink(
             'nvidia/OpenScienceReasoning-2',
@@ -81,7 +78,9 @@ export const DetailSpecs: React.FC<DetailSpecsProps> = ({ model }) => {
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white">
-      <h3 className="text-lg font-semibold text-prose p-4 border-b border-slate-200">Especificações</h3>
+      <h3 className="text-lg font-semibold text-prose p-4 border-b border-slate-200">
+        Especificações
+      </h3>
       <div className="px-4 divide-y divide-slate-200">
         <SpecItem label="Modelo Base" value={baseModelValue} />
         <SpecItem label="Parâmetros" value={model.parameters} />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimateOnScroll } from './AnimateOnScroll';
-import type { Model } from '../types';
+import type { Model } from '../types/index';
 import { ModelCard } from './ModelCard';
 
 interface OpenSourceSectionProps {
@@ -17,8 +17,9 @@ export const OpenSourceSection: React.FC<OpenSourceSectionProps> = ({ models, on
             <span className="text-rio-primary">Democratizando</span> a IA no Brasil
           </h2>
           <p className="mt-4 text-lg text-prose-light">
-            Acreditamos no poder da colaboração para acelerar a inovação. Explore nossos modelos de código aberto,
-            licenciados sob CC BY 4.0, e junte-se a nós na construção do futuro da inteligência artificial.
+            Acreditamos no poder da colaboração para acelerar a inovação. Explore nossos modelos de
+            código aberto, licenciados sob CC BY 4.0, e junte-se a nós na construção do futuro da
+            inteligência artificial.
           </p>
         </AnimateOnScroll>
 

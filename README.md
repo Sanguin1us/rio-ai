@@ -12,7 +12,7 @@ Portal institucional da Prefeitura do Rio/Escritório de Dados para apresentar a
 ## Principais Experiências
 - **Home / Catálogo** — hero com CTA, filtro por categoria e cartões clicáveis que descrevem cada modelo.
 - **Detalhe do modelo** — visões de casos de uso, snippets com highlight, specs formatadas e playground embutido quando `supportsChat` é verdadeiro.
-- **Comparativos externos** — Rio 2.5 Preview ganhou dois gráficos de dispersão (AIME 2025 e GPQA-Diamond) com escala logarítmica, marcações customizáveis e destaque visual para o próprio modelo.
+- **Comparativos externos** — Rio 2.5 Open ganhou dois gráficos de dispersão (AIME 2025 e GPQA-Diamond) com escala logarítmica, marcações customizáveis e destaque visual para o próprio modelo.
 - **Chat Rio 2.0 Omni** — suporta Markdown, GFM, KaTeX, realce de código, edição de mensagens e cópia rápida.
 - **Open Source** – lista modelos com `isOpenSource`, destacando licenças CC BY 4.0 e atalhos para Hugging Face.
 - **Plataforma Evolve** – storytelling sobre fluxo evolutivo com terminal animado e etapas descritas em bullet points.
@@ -25,7 +25,7 @@ Portal institucional da Prefeitura do Rio/Escritório de Dados para apresentar a
 - **UX** – `AnimateOnScroll` usa IntersectionObserver para “revelar” blocos; `TerminalAnimation` simula logs do pipeline evolutivo; `ModelDetailView` rederiva a UI com base na seleção atual.
 
 ## Documentação Complementar
-- `docs/rio-2_5-preview.txt` – resumo técnico do Rio 2.5 Preview com a linhagem de treinamento, modos de raciocínio e benchmarks detalhados (inclusive a referência ao SwiReasoning).
+- `docs/rio-2_5-open.txt` – resumo técnico do Rio 2.5 Open com a linhagem de treinamento, modos de raciocínio e benchmarks detalhados (inclusive a referência ao SwiReasoning).
 
 ## Pré-requisitos
 - Node.js 18+ (recomendado 20 LTS).

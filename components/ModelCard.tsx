@@ -1,6 +1,5 @@
-
 import React from 'react';
-import type { Model } from '../types';
+import type { Model } from '../types/index';
 import { ArrowRight } from 'lucide-react';
 
 interface ModelCardProps {
@@ -26,9 +25,7 @@ export const ModelCard: React.FC<ModelCardProps> = ({ model, onSelectModel }) =>
             </span>
           )}
         </div>
-        <p className="mt-4 text-prose-light text-sm leading-6 flex-grow">
-          {description}
-        </p>
+        <p className="mt-4 text-prose-light text-sm leading-6 flex-grow">{description}</p>
       </div>
       <div className="border-t border-slate-200 p-4">
         <div className="flex flex-wrap items-center justify-between gap-4">

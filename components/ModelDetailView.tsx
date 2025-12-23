@@ -1,6 +1,5 @@
-
 import React from 'react';
-import type { Model } from '../types';
+import type { Model } from '../types/index';
 import { DetailHeader } from './detail/DetailHeader';
 import { DetailPlayground } from './detail/DetailPlayground';
 import { DetailUseCases } from './detail/DetailUseCases';
@@ -8,9 +7,10 @@ import { DetailCodeSnippets } from './detail/DetailCodeSnippets';
 import { DetailSpecs } from './detail/DetailSpecs';
 import { AnimateOnScroll } from './AnimateOnScroll';
 import { ArrowUpRight } from 'lucide-react';
-import { Rio25PreviewDetail } from './detail/Rio25PreviewDetail';
-import { Rio2014BDetail } from './detail/Rio2014BDetail';
-import { Rio2032BDetail } from './detail/Rio2032BDetail';
+import { Rio25OpenDetail } from './detail/Rio25OpenDetail';
+import { Rio20OpenDetail } from './detail/Rio20OpenDetail';
+import { Rio20Detail } from './detail/Rio20Detail';
+import { Rio25Detail } from './detail/Rio25Detail';
 
 interface ModelDetailViewProps {
   model: Model;
@@ -18,20 +18,20 @@ interface ModelDetailViewProps {
 }
 
 export const ModelDetailView: React.FC<ModelDetailViewProps> = ({ model, onBack }) => {
-  if (model.name === 'Rio 2.5 Preview') {
-    return <Rio25PreviewDetail model={model} onBack={onBack} />;
+  if (model.name === 'Rio 2.5 Open') {
+    return <Rio25OpenDetail model={model} onBack={onBack} />;
   }
 
-  if (model.name === 'Rio 2.0 Preview') {
-    return <Rio2014BDetail model={model} onBack={onBack} />;
+  if (model.name === 'Rio 2.0 Open') {
+    return <Rio20OpenDetail model={model} onBack={onBack} />;
   }
 
   if (model.name === 'Rio 2.5') {
-    return <Rio2032BDetail model={model} onBack={onBack} />;
+    return <Rio25Detail model={model} onBack={onBack} />;
   }
 
   if (model.name === 'Rio 2.0') {
-    return <Rio2032BDetail model={model} onBack={onBack} />;
+    return <Rio20Detail model={model} onBack={onBack} />;
   }
 
   return (
@@ -42,21 +42,20 @@ export const ModelDetailView: React.FC<ModelDetailViewProps> = ({ model, onBack 
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="grid lg:grid-cols-5 gap-12">
-          
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-12">
             {model.useCases && (
-                <AnimateOnScroll delay={100}>
-                    <DetailUseCases useCases={model.useCases} />
-                </AnimateOnScroll>
+              <AnimateOnScroll delay={100}>
+                <DetailUseCases useCases={model.useCases} />
+              </AnimateOnScroll>
             )}
-             {model.codeSnippets && (
-                <AnimateOnScroll delay={200}>
-                    <DetailCodeSnippets snippets={model.codeSnippets} />
-                </AnimateOnScroll>
-             )}
+            {model.codeSnippets && (
+              <AnimateOnScroll delay={200}>
+                <DetailCodeSnippets snippets={model.codeSnippets} />
+              </AnimateOnScroll>
+            )}
           </div>
-          
+
           {/* Sidebar */}
           <div className="lg:col-span-2 space-y-12">
             <AnimateOnScroll delay={300}>
@@ -71,7 +70,8 @@ export const ModelDetailView: React.FC<ModelDetailViewProps> = ({ model, onBack 
                     </span>
                   </div>
                   <p className="mt-3 text-sm text-prose-light leading-relaxed">
-                    Acesse nosso modelo aberto no Hugging Face, explore a documentação e veja como usá-lo em minutos.
+                    Acesse nosso modelo aberto no Hugging Face, explore a documentação e veja como
+                    usá-lo em minutos.
                   </p>
                   <a
                     href={model.huggingFaceUrl}
@@ -93,7 +93,7 @@ export const ModelDetailView: React.FC<ModelDetailViewProps> = ({ model, onBack 
               )}
             </AnimateOnScroll>
             <AnimateOnScroll delay={400}>
-                <DetailSpecs model={model} />
+              <DetailSpecs model={model} />
             </AnimateOnScroll>
           </div>
         </div>

@@ -1,8 +1,14 @@
-import React from 'react';
 
 const IplanRioLogo = () => (
   <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <text x="0" y="28" fontFamily="Inter, sans-serif" fontSize="24" fontWeight="bold" fill="#212529">
+    <text
+      x="0"
+      y="28"
+      fontFamily="Inter, sans-serif"
+      fontSize="24"
+      fontWeight="bold"
+      fill="#212529"
+    >
       IPLAN
       <tspan fill="#002B7F">RIO</tspan>
     </text>
@@ -12,7 +18,14 @@ const IplanRioLogo = () => (
 const PrefeituraLogo = () => (
   <svg width="140" height="40" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="0" y="5" width="30" height="30" fill="#002B7F" />
-    <text x="40" y="28" fontFamily="Inter, sans-serif" fontSize="14" fontWeight="bold" fill="#212529">
+    <text
+      x="40"
+      y="28"
+      fontFamily="Inter, sans-serif"
+      fontSize="14"
+      fontWeight="bold"
+      fill="#212529"
+    >
       PREFEITURA DO RIO
     </text>
   </svg>

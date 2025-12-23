@@ -1,4 +1,3 @@
-import React from 'react';
 import { AnimateOnScroll } from './AnimateOnScroll';
 import TerminalAnimation from './TerminalAnimation';
 
@@ -16,22 +15,27 @@ export const SciencePlatformSection = () => {
               Rio 2.5 Evolve: laboratório evolutivo
             </h2>
             <p className="mt-4 text-lg text-prose-light">
-              O Rio 2.5 Evolve é um sistema de pesquisa algorítmica autônoma. Dado um problema claramente expresso em termos matemáticos e uma série de restrições, ele busca encontrar sozinho soluções otimizadas.
+              O Rio 2.5 Evolve é um sistema de pesquisa algorítmica autônoma. Dado um problema
+              claramente expresso em termos matemáticos e uma série de restrições, ele busca
+              encontrar sozinho soluções otimizadas.
             </p>
             <p className="mt-4 text-base text-prose-light">
-              Por exemplo, definimos o problema "Maximize a soma dos raios de n círculos inscritos em um quadrado escolhendo seu posicionamento".
-              O sistema gerou uma nova solução ótima, superando todos os resultados previamente conhecidos.
+              Por exemplo, definimos o problema &ldquo;Maximize a soma dos raios de n círculos inscritos
+              em um quadrado escolhendo seu posicionamento&rdquo;. O sistema gerou uma nova solução ótima,
+              superando todos os resultados previamente conhecidos.
             </p>
             <dl className="mt-8 space-y-6">
               <div>
                 <dt>
                   <p className="font-semibold text-prose">
-                    <span className="text-rio-primary font-bold">1. Definição em linguagem natural</span>
+                    <span className="text-rio-primary font-bold">
+                      1. Definição em linguagem natural
+                    </span>
                   </p>
                 </dt>
                 <dd className="mt-1 text-base text-prose-light">
-                  O usuário descreve o desafio em linguagem natural. O sistema
-                  converte isso em função de <em>fitness</em> e restrições rígidas.
+                  O usuário descreve o desafio em linguagem natural. O sistema converte isso em
+                  função de <em>fitness</em> e restrições rígidas.
                 </dd>
               </div>
               <div>
@@ -41,7 +45,8 @@ export const SciencePlatformSection = () => {
                   </p>
                 </dt>
                 <dd className="mt-1 text-base text-prose-light">
-                  O Rio 2.5 gera uma solução inicial pouco otimizada, que servirá de ponto de partida.
+                  O Rio 2.5 gera uma solução inicial pouco otimizada, que servirá de ponto de
+                  partida.
                 </dd>
               </div>
               <div>
@@ -51,8 +56,8 @@ export const SciencePlatformSection = () => {
                   </p>
                 </dt>
                 <dd className="mt-1 text-base text-prose-light">
-                  Algoritmos genéticos cruzam e mutam os melhores candidatos. O sistema aprende quais traços levam ao
-                  sucesso e descarta rapidamente caminhos inviáveis.
+                  Algoritmos genéticos cruzam e mutam os melhores candidatos. O sistema aprende
+                  quais traços levam ao sucesso e descarta rapidamente caminhos inviáveis.
                 </dd>
               </div>
               <div>
@@ -62,8 +67,9 @@ export const SciencePlatformSection = () => {
                   </p>
                 </dt>
                 <dd className="mt-1 text-base text-prose-light">
-                  Após centenas de iterações, a melhor solução emerge validada matematicamente.
-                  Em nossos testes, o Rio 2.5 Evolve faz o trabalho que levaria um matemático múltiplas horas ou até dias em minutos.
+                  Após centenas de iterações, a melhor solução emerge validada matematicamente. Em
+                  nossos testes, o Rio 2.5 Evolve faz o trabalho que levaria um matemático múltiplas
+                  horas ou até dias em minutos.
                 </dd>
               </div>
             </dl>

@@ -1,7 +1,6 @@
 import React from 'react';
-import { Twitter, Youtube, Github, Bot, MessageSquare, Search } from 'lucide-react';
-
-type View = 'home' | 'chat' | 'opensource' | 'research';
+import { Twitter, Youtube, Github, Search } from 'lucide-react';
+import type { View } from '../types/index';
 
 interface HeaderProps {
   onNavigate: (view: View) => void;
@@ -14,7 +13,13 @@ const Logos: React.FC<{ onNavigate: (view: View) => void }> = ({ onNavigate }) =
     className="flex items-center gap-4 text-sm text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-rio-primary rounded-md"
   >
     <div className="flex items-center gap-2 font-bold text-slate-800">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <rect width="24" height="24" rx="4" fill="#002B7F" />
       </svg>
       PREFEITURA RIO
@@ -26,19 +31,32 @@ const Logos: React.FC<{ onNavigate: (view: View) => void }> = ({ onNavigate }) =
 
 const SocialIcons = () => (
   <div className="flex items-center gap-4">
-    <a href="#" className="text-slate-500 hover:text-rio-primary" aria-label="Discord">
-      <Bot size={20} />
-    </a>
-    <a href="#" className="text-slate-500 hover:text-rio-primary" aria-label="Twitter">
+    <a
+      href="https://x.com/IplanRio_rj"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-slate-500 hover:text-rio-primary"
+      aria-label="Twitter"
+    >
       <Twitter size={20} />
     </a>
-    <a href="#" className="text-slate-500 hover:text-rio-primary" aria-label="WhatsApp">
-      <MessageSquare size={20} />
-    </a>
-    <a href="#" className="text-slate-500 hover:text-rio-primary" aria-label="YouTube">
+
+    <a
+      href="https://www.youtube.com/@iplanrio-empresamunicipald5095"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-slate-500 hover:text-rio-primary"
+      aria-label="YouTube"
+    >
       <Youtube size={20} />
     </a>
-    <a href="#" className="text-slate-500 hover:text-rio-primary" aria-label="GitHub">
+    <a
+      href="https://github.com/prefeitura-rio"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-slate-500 hover:text-rio-primary"
+      aria-label="GitHub"
+    >
       <Github size={20} />
     </a>
   </div>
@@ -69,8 +87,11 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentView }) => {
                   <li key={link.view}>
                     <button
                       onClick={() => onNavigate(link.view)}
-                      className={`text-sm font-medium transition-colors duration-200 ${currentView === link.view ? 'text-rio-primary' : 'text-prose hover:text-rio-primary'
-                        }`}
+                      className={`text-sm font-medium transition-colors duration-200 ${
+                        currentView === link.view
+                          ? 'text-rio-primary'
+                          : 'text-prose hover:text-rio-primary'
+                      }`}
                     >
                       {link.name}
                     </button>

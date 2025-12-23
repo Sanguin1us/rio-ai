@@ -2,11 +2,12 @@ import React from 'react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { AnimateOnScroll } from './AnimateOnScroll';
 import { HeroTitleAnimation } from './HeroTitleAnimation';
+import type { View } from '../types/index';
 
-type HeroProps = {
-  onNavigate?: (view: 'home' | 'chat' | 'opensource') => void;
+interface HeroProps {
+  onNavigate?: (view: View) => void;
   onAnimationComplete?: () => void;
-};
+}
 
 export const Hero: React.FC<HeroProps> = ({ onNavigate, onAnimationComplete }) => {
   return (

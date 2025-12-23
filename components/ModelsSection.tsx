@@ -4,13 +4,8 @@ import { RIO_MODELS } from '../constants';
 import { ModelCard } from './ModelCard';
 import { AnimateOnScroll } from './AnimateOnScroll';
 import { LineageTree } from './LineageTree';
-import type { Model } from '../types';
-import {
-  RIO_1_NODES,
-  RIO_1_5_NODES,
-  RIO_2_NODES,
-  RIO_2_5_NODES
-} from './lineage-data';
+import type { Model } from '../types/index';
+import { RIO_1_NODES, RIO_1_5_NODES, RIO_2_NODES, RIO_2_5_NODES } from './lineage-data';
 
 interface ModelsSectionProps {
   onSelectModel: (model: Model) => void;
@@ -38,11 +33,16 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({ onSelectModel }) =
 
   const currentNodes = useMemo(() => {
     switch (selectedGeneration) {
-      case '1.0': return RIO_1_NODES;
-      case '1.5': return RIO_1_5_NODES;
-      case '2.0': return RIO_2_NODES;
-      case '2.5': return RIO_2_5_NODES;
-      default: return RIO_2_5_NODES;
+      case '1.0':
+        return RIO_1_NODES;
+      case '1.5':
+        return RIO_1_5_NODES;
+      case '2.0':
+        return RIO_2_NODES;
+      case '2.5':
+        return RIO_2_5_NODES;
+      default:
+        return RIO_2_5_NODES;
     }
   }, [selectedGeneration]);
 
@@ -67,10 +67,11 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({ onSelectModel }) =
                 <button
                   key={gen}
                   onClick={() => setSelectedGeneration(gen)}
-                  className={`relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${selectedGeneration === gen
-                    ? 'text-white shadow-md'
-                    : 'text-slate-500 hover:text-prose hover:bg-slate-50'
-                    }`}
+                  className={`relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                    selectedGeneration === gen
+                      ? 'text-white shadow-md'
+                      : 'text-slate-500 hover:text-prose hover:bg-slate-50'
+                  }`}
                 >
                   {selectedGeneration === gen && (
                     <div className="absolute inset-0 bg-rio-primary rounded-full" />
@@ -91,10 +92,11 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({ onSelectModel }) =
         <div className="mt-12">
           {/* Button Toggle Wrapper */}
           <div
-            className={`flex justify-center transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isCatalogOpen
-              ? 'max-h-0 opacity-0 scale-90 overflow-hidden'
-              : 'max-h-40 opacity-100 scale-100 py-8'
-              }`}
+            className={`flex justify-center transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+              isCatalogOpen
+                ? 'max-h-0 opacity-0 scale-90 overflow-hidden'
+                : 'max-h-40 opacity-100 scale-100 py-8'
+            }`}
           >
             <button
               onClick={() => setIsCatalogOpen(true)}
@@ -106,7 +108,9 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({ onSelectModel }) =
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
                   <span className="relative inline-flex h-4 w-4 rounded-full bg-emerald-400 border-2 border-white"></span>
                 </span>
-                <span className="text-xl tracking-wide font-bold text-shadow-sm">Explorar Catálogo Completo</span>
+                <span className="text-xl tracking-wide font-bold text-shadow-sm">
+                  Explorar Catálogo Completo
+                </span>
                 <div className="bg-white/20 p-1 rounded-full group-hover:bg-white/30 transition-colors">
                   <ChevronDown className="h-6 w-6 transition-transform duration-500 group-hover:rotate-180" />
                 </div>
@@ -116,10 +120,11 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({ onSelectModel }) =
 
           {/* Expandable Content Wrapper */}
           <div
-            className={`grid transition-[grid-template-rows,opacity,transform] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCatalogOpen
-              ? 'grid-rows-[1fr] opacity-100 translate-y-0'
-              : 'grid-rows-[0fr] opacity-0 translate-y-8'
-              }`}
+            className={`grid transition-[grid-template-rows,opacity,transform] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+              isCatalogOpen
+                ? 'grid-rows-[1fr] opacity-100 translate-y-0'
+                : 'grid-rows-[0fr] opacity-0 translate-y-8'
+            }`}
           >
             <div className="overflow-hidden min-h-0">
               <div className="pt-8 animate-slideIn">
@@ -140,10 +145,11 @@ export const ModelsSection: React.FC<ModelsSectionProps> = ({ onSelectModel }) =
                       <button
                         key={category}
                         onClick={() => setSelectedCategory(category)}
-                        className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ${selectedCategory === category
+                        className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                          selectedCategory === category
                             ? 'bg-white text-rio-primary shadow-sm'
                             : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
-                          }`}
+                        }`}
                       >
                         {category}
                       </button>

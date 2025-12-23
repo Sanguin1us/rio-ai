@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Highlight, Language, themes } from 'prism-react-renderer';
@@ -19,9 +19,7 @@ const ThinkingIndicator = () => (
         Rio 2
       </span>
       <span className="flex items-center gap-1.5">
-        <span
-          className="h-1.5 w-1.5 rounded-full bg-rio-primary/85 animate-[pulse_1.6s_ease-in-out_infinite]"
-        />
+        <span className="h-1.5 w-1.5 rounded-full bg-rio-primary/85 animate-[pulse_1.6s_ease-in-out_infinite]" />
         <span
           className="h-1.5 w-1.5 rounded-full bg-rio-secondary/80 animate-[pulse_1.6s_ease-in-out_infinite]"
           style={{ animationDelay: '0.25s' }}
@@ -58,34 +56,24 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
   return (
     <div className={`flex px-3 py-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`relative max-w-[85%] rounded-2xl border ${
-          isUser
+        className={`relative max-w-[85%] rounded-2xl border ${isUser
             ? 'border-blue-100 bg-blue-50/90 text-slate-800 shadow-[0_18px_28px_-24px_rgba(0,43,127,0.55)]'
             : 'border-slate-200 bg-white shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)]'
-        } px-4 py-3 text-sm leading-relaxed`}
+          } px-4 py-3 text-sm leading-relaxed`}
       >
         <ReactMarkdown
           remarkPlugins={[remarkMath, remarkGfm, remarkBreaks]}
           components={{
-            h1: ({ node, ...props }) => (
-              <h1
-                className="mb-3 text-xl font-bold text-prose first:mt-0"
-                {...props}
-              />
+            h1: ({ node: _node, ...props }) => (
+              <h1 className="mb-3 text-xl font-bold text-prose first:mt-0" {...props} />
             ),
-            h2: ({ node, ...props }) => (
-              <h2
-                className="mb-3 mt-4 text-lg font-semibold text-prose"
-                {...props}
-              />
+            h2: ({ node: _node, ...props }) => (
+              <h2 className="mb-3 mt-4 text-lg font-semibold text-prose" {...props} />
             ),
-            h3: ({ node, ...props }) => (
-              <h3
-                className="mb-2 mt-4 text-base font-semibold text-prose"
-                {...props}
-              />
+            h3: ({ node: _node, ...props }) => (
+              <h3 className="mb-2 mt-4 text-base font-semibold text-prose" {...props} />
             ),
-            p: ({ node, className, ...props }) => (
+            p: ({ node: _node, className, ...props }) => (
               <p
                 className={['mb-3 mt-3 text-sm text-prose-light first:mt-0 last:mb-0', className]
                   .filter(Boolean)
@@ -93,13 +81,11 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 {...props}
               />
             ),
-            strong: ({ node, ...props }) => (
+            strong: ({ node: _node, ...props }) => (
               <strong className="font-semibold text-prose" {...props} />
             ),
-            em: ({ node, ...props }) => (
-              <em className="italic text-prose-light" {...props} />
-            ),
-            ul: ({ node, className, ...props }) => (
+            em: ({ node: _node, ...props }) => <em className="italic text-prose-light" {...props} />,
+            ul: ({ node: _node, className, ...props }) => (
               <ul
                 className={['mb-3 mt-3 list-disc pl-5 text-sm text-prose-light', className]
                   .filter(Boolean)
@@ -107,7 +93,7 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 {...props}
               />
             ),
-            ol: ({ node, className, ...props }) => (
+            ol: ({ node: _node, className, ...props }) => (
               <ol
                 className={['mb-3 mt-3 list-decimal pl-5 text-sm text-prose-light', className]
                   .filter(Boolean)
@@ -115,7 +101,7 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 {...props}
               />
             ),
-            li: ({ node, className, children, ...props }) => (
+            li: ({ node: _node, className, children, ...props }) => (
               <li
                 className={['mt-1 text-sm leading-relaxed text-prose-light first:mt-0', className]
                   .filter(Boolean)
@@ -125,9 +111,12 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 <span>{children}</span>
               </li>
             ),
-            blockquote: ({ node, className, ...props }) => (
+            blockquote: ({ node: _node, className, ...props }) => (
               <blockquote
-                className={['my-4 border-l-4 border-rio-primary/40 bg-rio-primary/10 px-4 py-2 text-sm text-prose', className]
+                className={[
+                  'my-4 border-l-4 border-rio-primary/40 bg-rio-primary/10 px-4 py-2 text-sm text-prose',
+                  className,
+                ]
                   .filter(Boolean)
                   .join(' ')}
                 {...props}
@@ -170,7 +159,7 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 />
               );
             },
-            table: ({ node, className, ...props }) => (
+            table: ({ node: _node, className, ...props }) => (
               <div className="my-4 overflow-hidden rounded-lg border border-slate-200">
                 <table
                   className={['w-full border-collapse text-left text-sm', className]
@@ -180,10 +169,10 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 />
               </div>
             ),
-            thead: ({ node, ...props }) => (
+            thead: ({ node: _node, ...props }) => (
               <thead className="bg-slate-100 text-sm font-semibold text-prose" {...props} />
             ),
-            td: ({ node, className, ...props }) => (
+            td: ({ node: _node, className, ...props }) => (
               <td
                 className={['px-3 py-2 align-top text-sm text-prose-light', className]
                   .filter(Boolean)
@@ -191,7 +180,7 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 {...props}
               />
             ),
-            th: ({ node, className, ...props }) => (
+            th: ({ node: _node, className, ...props }) => (
               <th
                 className={['px-3 py-2 text-left text-sm text-prose', className]
                   .filter(Boolean)
@@ -199,9 +188,12 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 {...props}
               />
             ),
-            a: ({ node, className, ...props }) => (
+            a: ({ node: _node, className, ...props }) => (
               <a
-                className={['text-rio-primary underline decoration-2 underline-offset-2 hover:text-blue-800', className]
+                className={[
+                  'text-rio-primary underline decoration-2 underline-offset-2 hover:text-blue-800',
+                  className,
+                ]
                   .filter(Boolean)
                   .join(' ')}
                 target="_blank"
@@ -209,15 +201,21 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                 {...props}
               />
             ),
-            code: ({ node, inline, className, children, ...props }) => {
-              const rawLanguage = typeof className === 'string' ? className.replace('language-', '') : '';
-              const language = rawLanguage ? (rawLanguage.toLowerCase() as Language) : ('tsx' as Language);
+            code: ({ node: _node, inline, className, children, ...props }) => {
+              const rawLanguage =
+                typeof className === 'string' ? className.replace('language-', '') : '';
+              const language = rawLanguage
+                ? (rawLanguage.toLowerCase() as Language)
+                : ('tsx' as Language);
               const code = String(children).replace(/\s+$/, '');
 
               if (inline) {
                 return (
                   <code
-                    className={['rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700', className]
+                    className={[
+                      'rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700',
+                      className,
+                    ]
                       .filter(Boolean)
                       .join(' ')}
                     {...props}
@@ -233,7 +231,13 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                     <span>{rawLanguage || 'code'}</span>
                   </div>
                   <Highlight theme={codeTheme} code={code} language={language}>
-                    {({ className: highlightClassName, style, tokens, getLineProps, getTokenProps }) => (
+                    {({
+                      className: highlightClassName,
+                      style,
+                      tokens,
+                      getLineProps,
+                      getTokenProps,
+                    }) => (
                       <pre
                         className={`overflow-x-auto px-4 pb-4 pt-2 text-xs leading-relaxed ${highlightClassName ?? ''}`}
                         style={{ ...style, background: 'transparent' }}
@@ -290,7 +294,9 @@ export const DetailPlayground: React.FC<{ modelName: string }> = ({ modelName })
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white">
-      <h3 className="text-lg font-semibold text-prose p-4 border-b border-slate-200">Playground Interativo</h3>
+      <h3 className="text-lg font-semibold text-prose p-4 border-b border-slate-200">
+        Playground Interativo
+      </h3>
       <div className="h-80 flex flex-col">
         <div className="flex-1 space-y-2 overflow-y-auto p-2">
           {messages.map((msg, index) => (

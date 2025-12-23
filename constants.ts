@@ -1,17 +1,12 @@
-import type { Model } from './types';
+import type { Model } from './types/index';
 import {
-  Bot,
-  Cpu,
   Code2,
   FileText,
   Mic,
-  ScanSearch,
-  GitBranch,
   Aperture,
   BoxSelect,
   Volume2,
   FlaskConical,
-  GraduationCap,
   Hammer,
   Terminal,
   Sparkles,
@@ -21,10 +16,7 @@ import {
   Scan,
   AudioLines,
   Binary,
-  Atom,
-  Music,
   Palette,
-  Box,
   Map,
   Film,
   Search,
@@ -100,12 +92,12 @@ export const RIO_MODELS: Model[] = [
     ],
   },
   {
-    name: 'Rio 2.5 Preview',
+    name: 'Rio 2.5 Open',
     description:
-      'Uma prévia do futuro. Este modelo open source, baseado no Qwen 3, oferece um equilíbrio excepcional entre performance e eficiência.',
+      'Uma versão aberta do futuro. Este modelo open source, baseado no Qwen 3, oferece um equilíbrio excepcional entre performance e eficiência.',
     category: 'Open Source',
     Icon: FlaskConical,
-    tags: ['Open Source', 'CC BY 4.0', '30B Parâmetros', 'Research Preview'],
+    tags: ['Open Source', 'CC BY 4.0', '30B Parâmetros', 'Research Open'],
     isOpenSource: true,
     baseModel: 'Qwen 3 30B-A3B 2507 Thinking',
     baseModelUrl: 'https://huggingface.co/Qwen/Qwen3-30B-A3B-Thinking-2507',
@@ -123,15 +115,15 @@ export const RIO_MODELS: Model[] = [
         url: 'https://huggingface.co/datasets/nvidia/Nemotron-Post-Training-Dataset-v1',
       },
     ],
-    huggingFaceUrl: 'https://huggingface.co/IPLANRIO/rio-2.5-preview',
+    huggingFaceUrl: 'https://huggingface.co/IPLANRIO/rio-2.5-open',
     codeSnippets: [
       {
         lang: 'Python',
         Icon: Code2,
         code: `from transformers import AutoTokenizer, AutoModelForCausalLM
 
-tokenizer = AutoTokenizer.from_pretrained("IPLANRIO/rio-2.5-preview")
-model = AutoModelForCausalLM.from_pretrained("IPLANRIO/rio-2.5-preview")
+tokenizer = AutoTokenizer.from_pretrained("IPLANRIO/rio-2.5-open")
+model = AutoModelForCausalLM.from_pretrained("IPLANRIO/rio-2.5-open")
 
 # Experimente a nova geração de modelos Rio!`,
       },
@@ -142,14 +134,14 @@ model = AutoModelForCausalLM.from_pretrained("IPLANRIO/rio-2.5-preview")
 -H "Authorization: Bearer $RIO_API_KEY" \\
 -H "Content-Type: application/json" \\
 -d '{
-  "model": "rio-2.5-preview",
+  "model": "rio-2.5-open",
   "messages": [{"role": "user", "content": "Quais as novidades do Rio 2.5?"}]
 }'`,
       },
     ],
   },
   {
-    name: 'Rio 2.0 Preview',
+    name: 'Rio 2.0 Open',
     description:
       'Versão open source de alta performance, pós-treinada a partir do Qwen 2.5 14B, ideal para pesquisa e desenvolvimento.',
     category: 'Open Source',
@@ -203,7 +195,7 @@ model = AutoModelForCausalLM.from_pretrained("IPLANRIO/rio-2.0-14b")
       'Variante do Rio 2.0 otimizada para pesquisas na web, oferecendo respostas rápidas e custo-eficientes.',
     category: 'Busca',
     Icon: Globe,
-    tags: ['Busca na Web', 'Rápido', 'Custo-eficiente', 'Open Source'],
+    tags: ['Open Source', 'Busca na Web'],
     isOpenSource: true,
   },
   {
@@ -212,7 +204,7 @@ model = AutoModelForCausalLM.from_pretrained("IPLANRIO/rio-2.0-14b")
       'Variante do Rio 2.5 otimizada para pesquisas na web, oferecendo respostas rápidas e custo-eficientes.',
     category: 'Busca',
     Icon: Globe,
-    tags: ['Busca na Web', 'Rápido', 'Custo-eficiente', 'Open Source'],
+    tags: ['Open Source', 'Busca na Web'],
     isOpenSource: true,
   },
   {

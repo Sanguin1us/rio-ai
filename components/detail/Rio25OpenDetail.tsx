@@ -1,36 +1,38 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Model } from '../../types';
-import { ArrowLeft, ArrowUpRight, Bolt, Box, Dumbbell, Goal, Library, Route, Sparkles } from 'lucide-react';
+import type { Model } from '../../types/index';
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Bolt,
+  Box,
+  Dumbbell,
+  Goal,
+  Library,
+  Route,
+  Sparkles,
+} from 'lucide-react';
+import { ComparisonChart } from './ComparisonChart';
+import {
+  ComparisonMetric,
+  LabelOverride,
+  ModelComparisonDatum,
+} from '../../types/chart';
 import { DetailUseCases } from './DetailUseCases';
 import { DetailCodeSnippets } from './DetailCodeSnippets';
 import { DetailSpecs } from './DetailSpecs';
 import { AnimateOnScroll } from '../AnimateOnScroll';
 
-interface Rio25PreviewDetailProps {
+interface Rio25OpenDetailProps {
   model: Model;
   onBack: () => void;
 }
 
 const BENCHMARKS = [
-  { metric: 'AIME 2025', base: '85.0', preview: '93.3', latent: '95.0' },
-  { metric: 'HMMT 2025', base: '71.4', preview: '80.0', latent: '83.3' },
-  { metric: 'GPQA Diamond', base: '73.4', preview: '75.8', latent: '77.2' },
-  { metric: 'LiveCodeBench v6', base: '66.0', preview: '69.4', latent: '69.6' },
+  { metric: 'AIME 2025', base: '85.0', rl: '93.3', latent: '95.0' },
+  { metric: 'HMMT 2025', base: '71.4', rl: '80.0', latent: '83.3' },
+  { metric: 'GPQA Diamond', base: '73.4', rl: '75.8', latent: '77.2' },
+  { metric: 'LiveCodeBench v6', base: '66.0', rl: '69.4', latent: '69.6' },
 ];
-
-type ComparisonMetric = 'gpqa' | 'aime';
-
-type LabelPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-type LabelOverride = LabelPosition | Partial<Record<ComparisonMetric, LabelPosition>>;
-
-type ModelComparisonDatum = {
-  model: string;
-  cost: number;
-  gpqa: number;
-  aime: number;
-  color: string;
-  isRio: boolean;
-};
 
 interface ConnectorLayout {
   width: number;
@@ -61,7 +63,7 @@ const LABEL_POSITION_OVERRIDES: Partial<Record<string, LabelOverride>> = {
 const MODEL_COMPARISON: ModelComparisonDatum[] = [
   { model: 'Gemini 3 Pro', cost: 12, gpqa: 91.9, aime: 95.0, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5.2', cost: 14, gpqa: 92.4, aime: 100.0, color: '#9CA3AF', isRio: false },
-  { model: 'Rio 2.5 Preview', cost: 0.1, gpqa: 77.2, aime: 95, color: '#1E40AF', isRio: true },
+  { model: 'Rio 2.5 Open', cost: 0.1, gpqa: 77.2, aime: 95, color: '#1E40AF', isRio: true },
   { model: 'Gemini 3 Flash', cost: 3, gpqa: 90.4, aime: 95.2, color: '#9CA3AF', isRio: false },
   { model: 'GPT-5 mini', cost: 2, gpqa: 82.3, aime: 91.1, color: '#9CA3AF', isRio: false },
   { model: 'Gemini 2.5 Flash-Lite', cost: 0.4, gpqa: 71, aime: 69, color: '#9CA3AF', isRio: false },
@@ -69,22 +71,6 @@ const MODEL_COMPARISON: ModelComparisonDatum[] = [
   { model: 'Claude Sonnet 4.5', cost: 15, gpqa: 83.4, aime: 87, color: '#9CA3AF', isRio: false },
   { model: 'Claude Haiku 4.5', cost: 5, gpqa: 73, aime: 80.7, color: '#9CA3AF', isRio: false },
 ];
-
-const COST_TICKS = [0.1, 1, 10];
-const COST_DOMAIN = {
-  min: 0.05,
-  max: 30,
-};
-const DEFAULT_Y_MIN = 65;
-const LABEL_POSITION_CONFIG: Record<
-  LabelPosition,
-  { dx: number; dy: number; anchor: 'start' | 'end' }
-> = {
-  'top-right': { dx: 12, dy: -12, anchor: 'start' },
-  'top-left': { dx: -12, dy: -12, anchor: 'end' },
-  'bottom-right': { dx: 12, dy: 16, anchor: 'start' },
-  'bottom-left': { dx: -12, dy: 16, anchor: 'end' },
-};
 
 const METRIC_CONFIGS: Array<{
   metric: ComparisonMetric;
@@ -134,7 +120,8 @@ const generateModeWeights = () => {
   }, {});
 };
 const parseScore = (value: string) => Number.parseFloat(value);
-const formatDelta = (value: string, base: string) => {
+// _formatDelta is unused but preserved for future use
+const _formatDelta = (value: string, base: string) => {
   const delta = parseScore(value) - parseScore(base);
   const sign = delta >= 0 ? '+' : '';
   return `${sign}${delta.toFixed(1)}`;
@@ -161,260 +148,8 @@ const segmentStyle = (start: string, end: string) => {
     width: `${Math.max(width, 4)}%`,
   };
 };
-const CHART_DIMENSIONS = { width: 720, height: 340 };
-const CHART_PADDING = { top: 20, right: 32, bottom: 60, left: 58 };
 
-const ComparisonChart: React.FC<{
-  metric: ComparisonMetric;
-  label: string;
-  yTicks: number[];
-  minY?: number;
-}> = ({ metric, label, yTicks, minY }) => {
-  const [hovered, setHovered] = React.useState<ModelComparisonDatum | null>(null);
-  const { width, height } = CHART_DIMENSIONS;
-  const { top, right, bottom, left } = CHART_PADDING;
-  const plotWidth = width - left - right;
-  const plotHeight = height - top - bottom;
-  const logMin = Math.log10(COST_DOMAIN.min);
-  const logMax = Math.log10(COST_DOMAIN.max);
-  const metricValues = MODEL_COMPARISON.map((item) => item[metric]);
-  const domainMinBase = minY ?? DEFAULT_Y_MIN;
-  const domainMin = Math.min(domainMinBase, ...metricValues, yTicks[0]);
-  const domainMax = Math.max(Math.max(...metricValues), yTicks[yTicks.length - 1]);
-  const getX = (cost: number) => {
-    const ratio = (Math.log10(cost) - logMin) / Math.max(logMax - logMin, 1);
-    return left + ratio * plotWidth;
-  };
-  const getY = (value: number) => {
-    const ratio = (value - domainMin) / Math.max(domainMax - domainMin, 1);
-    return height - bottom - ratio * plotHeight;
-  };
-  const formatCost = (value: number) => {
-    if (value >= 1) {
-      const formatted = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
-      return `$${formatted}`;
-    }
-    if (value >= 0.1) return `$${value.toFixed(1)}`;
-    return `$${value.toFixed(2)}`;
-  };
-  const resolveLabelPosition = (model: string, defaultAnchor: 'start' | 'end') => {
-    const override = LABEL_POSITION_OVERRIDES[model];
-    const specific =
-      typeof override === 'string' ? override : override?.[metric];
-    const fallback: LabelPosition = defaultAnchor === 'end' ? 'top-left' : 'top-right';
-    const position = specific ?? (typeof override === 'string' ? override : fallback);
-    return LABEL_POSITION_CONFIG[position];
-  };
-  const formatTooltipScore = (value: number) =>
-    Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
-  const formatTooltipCost = (value: number) => {
-    if (value < 1) return `$${value.toFixed(2)}`;
-    const fixed = value.toFixed(2);
-    return `$${fixed.endsWith('.00') ? fixed.slice(0, -3) : fixed}`;
-  };
-  const tooltipMetrics = hovered
-    ? {
-      pointX: getX(hovered.cost),
-      pointY: getY(hovered[metric]),
-      score: hovered[metric],
-    }
-    : null;
-  const tooltipBox = (() => {
-    if (!tooltipMetrics) return null;
-    const tooltipWidth = 220;
-    const tooltipHeight = 78;
-    const xMin = left;
-    const xMax = width - right - tooltipWidth;
-    const clampedX = Math.min(Math.max(tooltipMetrics.pointX - tooltipWidth / 2, xMin), xMax);
-    const clampedY = Math.max(tooltipMetrics.pointY - tooltipHeight - 16, top);
-    return {
-      ...tooltipMetrics,
-      boxX: clampedX,
-      boxY: clampedY,
-      width: tooltipWidth,
-      height: tooltipHeight,
-    };
-  })();
-
-  return (
-    <div className="rounded-3xl bg-white/80 p-4 sm:p-5">
-      <div className="text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.5em] text-rio-primary">{label}</p>
-      </div>
-      <div className="mt-4">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          role="img"
-          className="h-80 w-full"
-          onMouseLeave={() => setHovered(null)}
-        >
-          <line
-            x1={left}
-            y1={height - bottom}
-            x2={width - right}
-            y2={height - bottom}
-            className="stroke-slate-300"
-            strokeWidth={1}
-          />
-          <line
-            x1={left}
-            y1={top}
-            x2={left}
-            y2={height - bottom}
-            className="stroke-slate-300"
-            strokeWidth={1}
-          />
-          <line
-            x1={left}
-            y1={height - bottom}
-            x2={width - right}
-            y2={height - bottom}
-            className="stroke-slate-300"
-            strokeWidth={1}
-          />
-          {yTicks.map((tick) => {
-            const y = getY(tick);
-            return (
-              <text
-                key={`${metric}-y-${tick}`}
-                x={left - 10}
-                y={y + 4}
-                textAnchor="end"
-                className="text-[11px] fill-slate-500"
-              >
-                {tick}
-              </text>
-            );
-          })}
-          {COST_TICKS.map((tick) => {
-            const x = getX(tick);
-            return (
-              <text
-                key={`${metric}-x-${tick}`}
-                x={x}
-                y={height - bottom + 18}
-                textAnchor="middle"
-                className="text-[11px] fill-slate-500"
-              >
-                {formatCost(tick)}
-              </text>
-            );
-          })}
-          <text
-            x={(left + width - right) / 2}
-            y={height - 8}
-            textAnchor="middle"
-            className="text-[11px] fill-slate-400"
-          >
-            Custo por 1M tokens (USD)
-          </text>
-          {MODEL_COMPARISON.map((item) => {
-            const x = getX(item.cost);
-            const y = getY(item[metric]);
-            const defaultAnchor = x > left + plotWidth * 0.6 ? 'end' : 'start';
-            const { dx, dy, anchor } = resolveLabelPosition(item.model, defaultAnchor);
-            const labelX = x + dx;
-            const labelY = y + dy;
-            const radius = item.isRio ? 7 : 5;
-            const isBelow = dy >= 0;
-            const lineStartX = x + (anchor === 'end' ? -radius : radius);
-            const lineStartY = y + (isBelow ? radius : -radius);
-            const targetX = labelX;
-            const targetY = labelY - (isBelow ? 2 : 4);
-            const dxLine = targetX - lineStartX;
-            const dyLine = targetY - lineStartY;
-            const lineLength = Math.hypot(dxLine, dyLine);
-            const shorten = 4;
-            const scale =
-              lineLength > shorten ? (lineLength - shorten) / lineLength : 0;
-            const lineEndX = lineStartX + dxLine * scale;
-            const lineEndY = lineStartY + dyLine * scale;
-            const isHovered = hovered?.model === item.model;
-            const circleRadius = radius + (isHovered ? 2 : 0);
-            const faded = Boolean(hovered) && !isHovered;
-            return (
-              <g
-                key={`${metric}-${item.model}`}
-                className="cursor-pointer outline-none focus-visible:opacity-100"
-                tabIndex={0}
-                role="button"
-                aria-label={`${item.model} - ${label} ${formatTooltipScore(item[metric])}, custo ${formatTooltipCost(item.cost)} por 1M tokens`}
-                onMouseEnter={() => setHovered(item)}
-                onFocus={() => setHovered(item)}
-                onMouseLeave={() => setHovered(null)}
-                onBlur={() => setHovered(null)}
-              >
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={circleRadius + (item.isRio ? 1 : 0)}
-                  fill={item.isRio ? '#1E40AF' : '#FFFFFF'}
-                  stroke={item.isRio ? '#1E40AF' : item.color}
-                  strokeWidth={item.isRio ? 2.5 : 1.5}
-                  opacity={faded ? 0.4 : 1}
-                />
-                <line
-                  x1={lineStartX}
-                  y1={lineStartY}
-                  x2={lineEndX}
-                  y2={lineEndY}
-                  className="stroke-slate-300"
-                  strokeWidth={1}
-                  opacity={faded ? 0.5 : 1}
-                />
-                <text
-                  x={labelX}
-                  y={labelY}
-                  textAnchor={anchor}
-                  className="text-[11px] font-semibold fill-slate-700"
-                  opacity={faded ? 0.5 : 1}
-                >
-                  {item.model}
-                </text>
-              </g>
-            );
-          })}
-          {tooltipBox && hovered && (
-            <>
-              <line
-                x1={tooltipBox.pointX}
-                y1={tooltipBox.pointY}
-                x2={tooltipBox.pointX}
-                y2={tooltipBox.boxY + tooltipBox.height}
-                className="stroke-slate-300"
-                strokeDasharray="4 4"
-                strokeWidth={1}
-              />
-              <foreignObject
-                x={tooltipBox.boxX}
-                y={tooltipBox.boxY}
-                width={tooltipBox.width}
-                height={tooltipBox.height}
-                pointerEvents="none"
-              >
-                <div className="h-full rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg ring-1 ring-black/5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                    {hovered.model}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">
-                    {label}:{' '}
-                    <span className="text-rio-primary">
-                      {formatTooltipScore(tooltipBox.score)}
-                    </span>
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    Preco: {formatTooltipCost(hovered.cost)} / 1M tokens
-                  </p>
-                </div>
-              </foreignObject>
-            </>
-          )}
-        </svg>
-      </div>
-    </div>
-  );
-};
-export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, onBack }) => {
+export const Rio25OpenDetail: React.FC<Rio25OpenDetailProps> = ({ model, onBack }) => {
   const [modeWeights, setModeWeights] = useState<Record<string, number>>(DEFAULT_MODE_WEIGHTS);
   const baseRef = useRef<HTMLDivElement | null>(null);
   const pretrainRef = useRef<HTMLDivElement | null>(null);
@@ -446,7 +181,7 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
     const cardsRect = cardGridRef.current.getBoundingClientRect();
     const rioRect = rioRef.current.getBoundingClientRect();
     const cardNodes = Array.from(
-      cardGridRef.current.querySelectorAll<HTMLElement>('[data-connector-card="true"]'),
+      cardGridRef.current.querySelectorAll<HTMLElement>('[data-connector-card="true"]')
     );
 
     if (!cardNodes.length) {
@@ -499,7 +234,8 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
     if (!connectorLayout || connectorLayout.cardCenters.length === 0) {
       return null;
     }
-    const centerX = connectorLayout.routerCenter ?? connectorLayout.baseCenter ?? connectorLayout.width / 2;
+    const centerX =
+      connectorLayout.routerCenter ?? connectorLayout.baseCenter ?? connectorLayout.width / 2;
     const firstX = Math.min(...connectorLayout.cardCenters);
     const lastX = Math.max(...connectorLayout.cardCenters);
     const topGap = Math.max(connectorLayout.cardTop - connectorLayout.routerBottom, 24);
@@ -534,7 +270,9 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
           <div className="mt-6 space-y-10">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-6 lg:max-w-3xl">
-                <h1 className="text-4xl font-bold leading-tight text-prose sm:text-5xl">{model.name}</h1>
+                <h1 className="text-4xl font-bold leading-tight text-prose sm:text-5xl">
+                  {model.name}
+                </h1>
                 <p className="text-lg text-prose-light leading-relaxed">{model.description}</p>
                 <div className="flex flex-wrap gap-2">
                   {model.tags.map((tag) => (
@@ -556,7 +294,11 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                   className="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-prose shadow-sm transition hover:border-rio-primary/50 hover:text-rio-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rio-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white lg:self-start"
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50">
-                    <img src="/logos/huggingface-2.svg" alt="Logomarca do Hugging Face" className="h-6 w-6" />
+                    <img
+                      src="/logos/huggingface-2.svg"
+                      alt="Logomarca do Hugging Face"
+                      className="h-6 w-6"
+                    />
                   </span>
                   <span className="text-base">Acessar pesos</span>
                   <ArrowUpRight className="h-4 w-4" />
@@ -569,10 +311,14 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                 <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-rio-primary/10 blur-2xl" />
               </div>
               <div className="relative flex h-full flex-col gap-6">
-
                 <div className="grid gap-4 lg:grid-cols-2">
                   {METRIC_CONFIGS.map((config) => (
-                    <ComparisonChart key={config.metric} {...config} />
+                    <ComparisonChart
+                      key={config.metric}
+                      {...config}
+                      data={MODEL_COMPARISON}
+                      labelOverrides={LABEL_POSITION_OVERRIDES}
+                    />
                   ))}
                 </div>
               </div>
@@ -590,8 +336,8 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                   Benchmarks oficiais
                 </p>
                 <p className="mt-2 text-sm text-prose-light">
-                  Os gráficos mostram como refinamos o Qwen 3 30B-A3B utilizando Reinforcement Learning e o mecanismo
-                  de pensamento latente.
+                  Os gráficos mostram como refinamos o Qwen 3 30B-A3B utilizando Reinforcement
+                  Learning e o mecanismo de pensamento latente.
                 </p>
               </div>
             </div>
@@ -615,9 +361,24 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                     />
                     <div className="absolute inset-0">
                       {[
-                        { label: 'Base', value: row.base, className: 'text-slate-600', showValue: true },
-                        { label: '+RL', value: row.preview, className: 'text-rio-primary', showValue: false },
-                        { label: '+Latente', value: row.latent, className: 'text-emerald-600', showValue: true },
+                        {
+                          label: 'Base',
+                          value: row.base,
+                          className: 'text-slate-600',
+                          showValue: true,
+                        },
+                        {
+                          label: '+RL',
+                          value: row.rl,
+                          className: 'text-rio-primary',
+                          showValue: false,
+                        },
+                        {
+                          label: '+Latente',
+                          value: row.latent,
+                          className: 'text-emerald-600',
+                          showValue: true,
+                        },
                       ].map((mark) => (
                         <div
                           key={mark.label}
@@ -653,24 +414,28 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rio-primary">
                   Como treinamos esse modelo
                 </p>
-                <h2 className="mt-2 text-3xl font-bold text-prose">RL, SFT e destilação atuando juntos</h2>
+                <h2 className="mt-2 text-3xl font-bold text-prose">
+                  RL, SFT e destilação atuando juntos
+                </h2>
               </div>
-              <p className="text-sm text-prose-light max-w-lg">
-                Treinamento nativo em 4-bit
-              </p>
+              <p className="text-sm text-prose-light max-w-lg">Treinamento nativo em 4-bit</p>
             </div>
             <div className="mt-10 rounded-[32px] border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-6 sm:p-8">
               <div className="flex flex-col gap-2">
                 <h3 className="text-xl font-semibold text-prose">Pipeline de Treinamento</h3>
                 <p className="text-sm text-prose-light max-w-4xl">
-                  O diagrama demonstra como o Rio 2.5 simultaneamente maximiza três objetivos: RL, SFT e OPD,
+                  O diagrama demonstra como o Rio 2.5 simultaneamente maximiza três objetivos: RL,
+                  SFT e OPD,
                   <br />
                   com um router adaptativo equilibrando os pesos dados a cada método.
                 </p>
               </div>
 
               <div className="mt-8 flex flex-col items-center gap-6">
-                <div ref={connectorRef} className="relative flex w-full max-w-3xl flex-col items-center gap-6">
+                <div
+                  ref={connectorRef}
+                  className="relative flex w-full max-w-3xl flex-col items-center gap-6"
+                >
                   {connectorMetrics && connectorLayout && (
                     <svg
                       className="pointer-events-none absolute inset-0 hidden h-full w-full text-slate-200 md:block"
@@ -765,7 +530,12 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                             strokeWidth={1.5}
                           />
                           <circle cx={x} cy={connectorMetrics.topRailY} r={3} fill="currentColor" />
-                          <circle cx={x} cy={connectorMetrics.bottomRailY} r={3} fill="currentColor" />
+                          <circle
+                            cx={x}
+                            cy={connectorMetrics.bottomRailY}
+                            r={3}
+                            fill="currentColor"
+                          />
                         </g>
                       ))}
                       <line
@@ -807,7 +577,9 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                         <Library className="h-6 w-6 text-rio-primary" />
                       </span>
                       <div>
-                        <p className="text-sm font-semibold text-prose">Reinforcement Learning Pre-Training</p>
+                        <p className="text-sm font-semibold text-prose">
+                          Reinforcement Learning Pre-Training
+                        </p>
                       </div>
                     </div>
                     <div className="h-8 w-0.5 bg-slate-200 md:hidden" />
@@ -868,7 +640,7 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
                         <Sparkles className="h-6 w-6 text-emerald-600" />
                       </span>
                       <div>
-                        <p className="text-sm font-semibold text-prose">Rio 2.5 Preview</p>
+                        <p className="text-sm font-semibold text-prose">Rio 2.5 Open</p>
                       </div>
                     </div>
                   </div>
@@ -893,7 +665,3 @@ export const Rio25PreviewDetail: React.FC<Rio25PreviewDetailProps> = ({ model, o
     </div>
   );
 };
-
-
-
-

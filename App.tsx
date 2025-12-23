@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ChatSection } from './components/ChatSection';
@@ -6,13 +6,11 @@ import { ModelsSection } from './components/ModelsSection';
 import { OpenSourceSection } from './components/OpenSourceSection';
 import { SciencePlatformSection } from './components/SciencePlatformSection';
 import { ResearchSection } from './components/ResearchSection';
-import { TechDetailsSection } from './components/TechDetailsSection';
 import { Footer } from './components/Footer';
 import { ModelDetailView } from './components/ModelDetailView';
-import type { Model } from './types';
+import { ErrorBoundary, ChatErrorBoundary, SectionErrorBoundary } from './components/ErrorBoundary';
+import type { Model, View } from './types/index';
 import { RIO_MODELS } from './constants';
-
-type View = 'home' | 'chat' | 'opensource' | 'research';
 
 function App() {
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
@@ -42,10 +40,19 @@ function App() {
   const renderView = () => {
     switch (currentView) {
       case 'chat':
-        return <ChatSection />;
-      case 'opensource':
-        const openSourceModels = RIO_MODELS.filter(m => m.isOpenSource);
-        return openSourceModels.length > 0 ? <OpenSourceSection models={openSourceModels} onSelectModel={handleSelectModel} /> : null;
+        return (
+          <ChatErrorBoundary>
+            <ChatSection />
+          </ChatErrorBoundary>
+        );
+      case 'opensource': {
+        const openSourceModels = RIO_MODELS.filter((m) => m.isOpenSource);
+        return openSourceModels.length > 0 ? (
+          <SectionErrorBoundary sectionName="OpenSource">
+            <OpenSourceSection models={openSourceModels} onSelectModel={handleSelectModel} />
+          </SectionErrorBoundary>
+        ) : null;
+      }
       case 'research':
         return <ResearchSection />;
       case 'home':
@@ -56,9 +63,12 @@ function App() {
             <div
               className={`transition-opacity duration-1000 ease-out ${showContent ? 'opacity-100' : 'opacity-0'}`}
             >
-              <ModelsSection onSelectModel={handleSelectModel} />
-              <SciencePlatformSection />
-              <TechDetailsSection />
+              <SectionErrorBoundary sectionName="Models">
+                <ModelsSection onSelectModel={handleSelectModel} />
+              </SectionErrorBoundary>
+              <SectionErrorBoundary sectionName="SciencePlatform">
+                <SciencePlatformSection />
+              </SectionErrorBoundary>
             </div>
           </>
         );
@@ -66,17 +76,21 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans">
-      <Header onNavigate={handleNavigate} currentView={currentView} />
-      <main>
-        {selectedModel ? (
-          <ModelDetailView model={selectedModel} onBack={handleBack} />
-        ) : (
-          renderView()
-        )}
-      </main>
-      <Footer />
-    </div>
+    <ErrorBoundary name="App">
+      <div className="min-h-screen bg-white font-sans">
+        <Header onNavigate={handleNavigate} currentView={currentView} />
+        <main>
+          {selectedModel ? (
+            <ErrorBoundary name="ModelDetail">
+              <ModelDetailView model={selectedModel} onBack={handleBack} />
+            </ErrorBoundary>
+          ) : (
+            renderView()
+          )}
+        </main>
+        <Footer />
+      </div>
+    </ErrorBoundary>
   );
 }
 

@@ -1,5 +1,19 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Send, Copy, Check, Edit3, X, Zap, Sparkles, RefreshCw, ThumbsUp, ThumbsDown, ChevronLeft, ChevronRight, Square } from 'lucide-react';
+import {
+  Send,
+  Copy,
+  Check,
+  Edit3,
+  X,
+  Zap,
+  Sparkles,
+  RefreshCw,
+  ThumbsUp,
+  ThumbsDown,
+  ChevronLeft,
+  ChevronRight,
+  Square,
+} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Highlight, Language, themes } from 'prism-react-renderer';
 import remarkMath from 'remark-math';
@@ -23,7 +37,7 @@ const getNodeText = (node: React.ReactNode): string => {
     return node.map(getNodeText).join('');
   }
   if (React.isValidElement(node)) {
-    return getNodeText(node.props.children);
+    return getNodeText((node.props as { children?: React.ReactNode }).children);
   }
   return '';
 };
@@ -61,7 +75,7 @@ const CodeBlock: React.FC<{
   const rawLanguage =
     typeof node?.lang === 'string' && node.lang.trim().length > 0
       ? node.lang.trim()
-      : className?.replace('language-', '') ?? '';
+      : (className?.replace('language-', '') ?? '');
   const displayLanguage = (rawLanguage || 'code').toLowerCase();
   const fallbackLanguage: Language = 'tsx';
   const language = rawLanguage.toLowerCase();
@@ -70,10 +84,7 @@ const CodeBlock: React.FC<{
   const codeText = codeTextRaw.replace(/\s+$/, '');
   const trimmed = codeText.trim();
   const shouldRenderAsChip =
-    !inline &&
-    trimmed.length > 0 &&
-    trimmed.length <= 40 &&
-    !trimmed.includes('\n');
+    !inline && trimmed.length > 0 && trimmed.length <= 40 && !trimmed.includes('\n');
 
   const handleCopyCode = useCallback(async () => {
     if (!codeText || typeof navigator === 'undefined' || !navigator.clipboard) return;
@@ -128,11 +139,7 @@ const CodeBlock: React.FC<{
           {codeCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
         </button>
       </div>
-      <Highlight
-        theme={codeTheme}
-        code={codeText}
-        language={prismLanguage}
-      >
+      <Highlight theme={codeTheme} code={codeText} language={prismLanguage}>
         {({ className: highlightClassName, style, tokens, getLineProps, getTokenProps }) => (
           <pre
             className={`overflow-x-auto px-4 pb-4 pt-12 text-sm leading-relaxed ${highlightClassName}`}
@@ -147,6 +154,7 @@ const CodeBlock: React.FC<{
               const visibleTokens = tokens.slice();
               while (visibleTokens.length > 0) {
                 const lastLine = visibleTokens[visibleTokens.length - 1];
+                if (!lastLine) break;
                 const lastLineContent = lastLine.map((token) => token.content).join('');
                 if (lastLineContent.trim().length === 0) {
                   visibleTokens.pop();
@@ -169,7 +177,14 @@ const CodeBlock: React.FC<{
   );
 };
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, onFeedback, onNavigate, disableActions }) => {
+const ChatBubble: React.FC<ChatBubbleProps> = ({
+  message,
+  onEdit,
+  onRegenerate,
+  onFeedback,
+  onNavigate,
+  disableActions,
+}) => {
   const isUser = message.role === 'user';
   const [copiedBubble, setCopiedBubble] = useState(false);
   const bubbleCopyTimeoutRef = useRef<number | null>(null);
@@ -216,12 +231,12 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
               remarkPlugins={[remarkMath, remarkGfm, remarkBreaks]}
               rehypePlugins={[rehypeKatex]}
               components={{
-                a: ({ node, ...anchorProps }) => (
+                a: ({ node: _node, ...anchorProps }) => (
                   <a {...anchorProps} rel="noopener noreferrer" target="_blank" />
                 ),
-                // @ts-ignore
+                // @ts-expect-error - react-markdown types don't include inline prop
                 code: (props) => <CodeBlock {...props} isUser={isUser} />,
-                blockquote: ({ node, className, children, ...blockquoteProps }) => (
+                blockquote: ({ node: _node, className, children, ...blockquoteProps }) => (
                   <blockquote
                     className={[
                       className,
@@ -234,19 +249,19 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
                     {children}
                   </blockquote>
                 ),
-                ul: ({ node, className, ...listProps }) => (
+                ul: ({ node: _node, className, ...listProps }) => (
                   <ul
                     className={['list-disc space-y-2 pl-5', className].filter(Boolean).join(' ')}
                     {...listProps}
                   />
                 ),
-                ol: ({ node, className, ...listProps }) => (
+                ol: ({ node: _node, className, ...listProps }) => (
                   <ol
                     className={['list-decimal space-y-2 pl-5', className].filter(Boolean).join(' ')}
                     {...listProps}
                   />
                 ),
-                li: ({ node, className, ...itemProps }) => (
+                li: ({ node: _node, className, ...itemProps }) => (
                   <li
                     className={[
                       'leading-relaxed',
@@ -261,13 +276,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
                     {...itemProps}
                   />
                 ),
-                table: ({ node, className, children, ...tableProps }) => (
+                table: ({ node: _node, className, children, ...tableProps }) => (
                   <div className="my-4 overflow-x-auto">
                     <table
-                      className={[
-                        'min-w-full border-collapse text-left text-sm',
-                        className,
-                      ]
+                      className={['min-w-full border-collapse text-left text-sm', className]
                         .filter(Boolean)
                         .join(' ')}
                       {...tableProps}
@@ -276,31 +288,47 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, onEdit, onRegenerate, 
                     </table>
                   </div>
                 ),
-                thead: ({ node, className, ...theadProps }) => (
-                  <thead className={['bg-slate-200/80', className].filter(Boolean).join(' ')} {...theadProps} />
+                thead: ({ node: _node, className, ...theadProps }) => (
+                  <thead
+                    className={['bg-slate-200/80', className].filter(Boolean).join(' ')}
+                    {...theadProps}
+                  />
                 ),
-                tbody: ({ node, className, ...tbodyProps }) => (
-                  <tbody className={['divide-y divide-slate-200', className].filter(Boolean).join(' ')} {...tbodyProps} />
+                tbody: ({ node: _node, className, ...tbodyProps }) => (
+                  <tbody
+                    className={['divide-y divide-slate-200', className].filter(Boolean).join(' ')}
+                    {...tbodyProps}
+                  />
                 ),
-                tr: ({ node, className, ...trProps }) => (
-                  <tr className={[className, 'odd:bg-white even:bg-slate-50'].filter(Boolean).join(' ')} {...trProps} />
+                tr: ({ node: _node, className, ...trProps }) => (
+                  <tr
+                    className={[className, 'odd:bg-white even:bg-slate-50']
+                      .filter(Boolean)
+                      .join(' ')}
+                    {...trProps}
+                  />
                 ),
-                th: ({ node, className, ...thProps }) => (
+                th: ({ node: _node, className, ...thProps }) => (
                   <th
-                    className={['px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600', className]
+                    className={[
+                      'px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600',
+                      className,
+                    ]
                       .filter(Boolean)
                       .join(' ')}
                     {...thProps}
                   />
                 ),
-                td: ({ node, className, ...tdProps }) => (
+                td: ({ node: _node, className, ...tdProps }) => (
                   <td
-                    className={['px-3 py-2 align-top text-sm text-slate-700', className].filter(Boolean).join(' ')}
+                    className={['px-3 py-2 align-top text-sm text-slate-700', className]
+                      .filter(Boolean)
+                      .join(' ')}
                     {...tdProps}
                   />
                 ),
                 hr: () => <hr className="my-4 border border-slate-300/70" />,
-                p: ({ node, className, ...paragraphProps }) => {
+                p: ({ node: _node, className, ...paragraphProps }) => {
                   const paragraphClasses = [
                     className,
                     'mt-2',
@@ -528,8 +556,8 @@ export const ChatSection = () => {
     });
   };
 
-  const handleFeedbackSubmit = (data: FeedbackData) => {
-    console.log('Feedback submitted:', data, feedbackState.message);
+  const handleFeedbackSubmit = (_data: FeedbackData) => {
+    // TODO: Implement feedback submission to backend API
     setFeedbackState((prev) => ({ ...prev, isOpen: false }));
   };
 
@@ -537,7 +565,9 @@ export const ChatSection = () => {
     <section id="chat" className="bg-white py-20 sm:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateOnScroll className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-prose sm:text-4xl">Converse com o Rio 2.5</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-prose sm:text-4xl">
+            Converse com o Rio 2.5
+          </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-prose-light">
             Faça uma pergunta para nosso modelo flagship.
           </p>
@@ -553,11 +583,13 @@ export const ChatSection = () => {
                   onRegenerate={
                     msg.role === 'user'
                       ? () => regenerate(index)
-                      : index > 0 && messages[index - 1].role === 'user'
+                      : index > 0 && messages[index - 1]?.role === 'user'
                         ? () => regenerate(index - 1)
                         : undefined
                   }
-                  onEdit={msg.role === 'user' ? () => handleEditMessage(msg.id, msg.content) : undefined}
+                  onEdit={
+                    msg.role === 'user' ? () => handleEditMessage(msg.id, msg.content) : undefined
+                  }
                   onNavigate={(direction) => navigateMessage(msg.id, direction)}
                   onFeedback={handleFeedback}
                 />
@@ -594,7 +626,11 @@ export const ChatSection = () => {
                     onClick={() => setIsFastModel(!isFastModel)}
                     className={`flex items-center gap-2 rounded-xl py-1.5 pl-2 pr-3 text-xs font-medium transition-all duration-300 hover:bg-slate-100 ${isFastModel ? 'text-amber-600' : 'text-rio-primary'
                       }`}
-                    title={isFastModel ? 'Mudar para Rio 2.5 (Alta precisão)' : 'Mudar para Rio 2.5 Flash (Rápido)'}
+                    title={
+                      isFastModel
+                        ? 'Mudar para Rio 2.5 (Alta precisão)'
+                        : 'Mudar para Rio 2.5 Flash (Rápido)'
+                    }
                   >
                     <div
                       className={`relative flex h-6 w-6 items-center justify-center rounded-lg transition-colors duration-300 ${isFastModel ? 'bg-amber-100' : 'bg-rio-primary/10'
@@ -627,7 +663,7 @@ export const ChatSection = () => {
                     editingState
                       ? 'Edite sua mensagem...'
                       : isFastModel
-                        ? 'Perguntar para o Flash...'
+                        ? 'Perguntar para o Rio 2.5 Flash...'
                         : 'Perguntar para o Rio 2.5...'
                   }
                   className="flex-1 border-none bg-transparent px-2 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0"
