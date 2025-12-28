@@ -7,7 +7,7 @@
 // Chart Configuration Types
 // ============================================================================
 
-export type ComparisonMetric = 'gpqa' | 'aime' | 'livebench';
+export type ComparisonMetric = 'gpqa' | 'aime' | 'livebench' | 'matharena' | 'hle';
 
 export type LabelPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 
@@ -17,6 +17,8 @@ export type LabelOverride =
     aime?: LabelPosition;
     gpqa?: LabelPosition;
     livebench?: LabelPosition;
+    matharena?: LabelPosition;
+    hle?: LabelPosition;
   };
 
 /**
@@ -28,6 +30,8 @@ export interface ModelComparisonDatum {
   gpqa: number;
   aime: number;
   livebench?: number;
+  matharena?: number;
+  hle?: number;
   color: string;
   isRio: boolean;
 }

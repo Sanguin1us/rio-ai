@@ -24,6 +24,29 @@ import {
 
 export const RIO_MODELS: Model[] = [
   {
+    name: 'Rio 3 Preview',
+    description:
+      'Nosso modelo flagship mais avançado, criado através de Deepthink Internalization Merging de 10 instâncias do Rio 2.5 Omni.',
+    category: 'Flagship',
+    Icon: Sparkles,
+    tags: ['Flagship', 'State-of-the-art', 'Deepthink Merging'],
+    parameters: '800 Bilhões (30B ativados)',
+    supportsChat: false, // API coming soon under rio-3.0
+    codeSnippets: [
+      {
+        lang: 'cURL',
+        Icon: Terminal,
+        code: `curl -X POST https://api.iplan.rio/v1/chat/completions \\
+-H "Authorization: Bearer $RIO_API_KEY" \\
+-H "Content-Type: application/json" \\
+-d '{
+  "model": "rio-3.0",
+  "messages": [{"role": "user", "content": "Resolva este problema de matemática avançada."}]
+}'`,
+      },
+    ],
+  },
+  {
     name: 'Rio 2.0 Omni',
     description:
       'Nosso modelo flagship multimodal, unindo as capacidades de Transcrição, ML, Search e Visão em uma única e poderosa IA.',

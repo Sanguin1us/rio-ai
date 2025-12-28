@@ -13,6 +13,7 @@ import {
   FileText,
   Eye,
   Mic,
+  Sparkles,
 } from 'lucide-react';
 
 export interface LineageNode {
@@ -535,3 +536,28 @@ export const RIO_2_NODES: LineageNode[] = [
 ];
 
 export const RIO_2_5_NODES = [...LINEAGE_NODES];
+
+// --- Generation 3.0 Data ---
+// Deepthink Internalization Merging: 10 Rio 2.5 Omni instances converge into Rio 3 Preview
+export const RIO_3_NODES: LineageNode[] = [
+  // The 10 Rio 2.5 Omni instances (arranged in 2 rows of 5)
+  ...Array.from({ length: 10 }, (_, i) => ({
+    id: `rio-2.5-omni-${i + 1}`,
+    label: `Rio 2.5 Omni #${i + 1}`,
+    x: i < 5 ? i : i - 5,
+    y: i < 5 ? 0 : 1,
+    parents: [] as string[],
+    model: RIO_MODELS.find((m) => m.name === 'Rio 2.5 Omni'),
+    icon: Sparkles,
+  })),
+  // The merged Rio 3 Preview
+  {
+    id: 'rio-3-preview',
+    label: 'Rio 3 Preview',
+    x: 2,
+    y: 3,
+    parents: Array.from({ length: 10 }, (_, i) => `rio-2.5-omni-${i + 1}`),
+    model: RIO_MODELS.find((m) => m.name === 'Rio 3 Preview'),
+    icon: Sparkles,
+  },
+];

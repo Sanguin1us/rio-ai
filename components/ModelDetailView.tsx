@@ -11,6 +11,8 @@ import { Rio25OpenDetail } from './detail/Rio25OpenDetail';
 import { Rio20OpenDetail } from './detail/Rio20OpenDetail';
 import { Rio20Detail } from './detail/Rio20Detail';
 import { Rio25Detail } from './detail/Rio25Detail';
+import { Rio30Detail } from './detail/Rio30Detail';
+
 
 interface ModelDetailViewProps {
   model: Model;
@@ -32,6 +34,10 @@ export const ModelDetailView: React.FC<ModelDetailViewProps> = ({ model, onBack 
 
   if (model.name === 'Rio 2.0') {
     return <Rio20Detail model={model} onBack={onBack} />;
+  }
+
+  if (model.name === 'Rio 3 Preview') {
+    return <Rio30Detail model={model} onBack={onBack} />;
   }
 
   return (
