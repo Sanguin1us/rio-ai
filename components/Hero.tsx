@@ -35,7 +35,7 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate, onAnimationComplete }) =
               onClick={() => onNavigate?.('chat')}
               className="inline-flex items-center gap-2 rounded-md border border-rio-primary px-6 py-3 text-base font-semibold text-rio-primary transition hover:bg-rio-primary hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rio-primary"
             >
-              Converse com o Rio 2.5
+              Converse com o Rio 3
               <ArrowRight className="h-5 w-5" />
             </button>
           </div>

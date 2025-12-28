@@ -48,7 +48,11 @@ const TypingCaret: React.FC = () => (
   <span className="ml-1 inline-block h-[1.1em] w-[2px] translate-y-[2px] bg-rio-primary/80 animate-[blink_1s_steps(2,start)_infinite]" />
 );
 
-export const ThinkingAnimation: React.FC = () => {
+interface ThinkingAnimationProps {
+  modelName?: string;
+}
+
+export const ThinkingAnimation: React.FC<ThinkingAnimationProps> = ({ modelName = 'Rio' }) => {
   const [stepIndex, setStepIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
@@ -87,21 +91,20 @@ export const ThinkingAnimation: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 shadow-inner ring-1 ring-black/5">
             <Icon
-              className={`h-5 w-5 ${iconColor} transition-all duration-500 ${
-                Icon === Search
+              className={`h-5 w-5 ${iconColor} transition-all duration-500 ${Icon === Search
                   ? 'animate-[wiggle_1s_ease-in-out_infinite]'
                   : Icon === Cpu
                     ? 'animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]'
                     : Icon === Zap
                       ? 'animate-[flash_1.5s_ease-in-out_infinite]'
                       : ''
-              }`}
+                }`}
             />
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Rio 2.5 Thinking
+                {modelName} Thinking
               </span>
               <span className="flex gap-0.5">
                 <span className="h-1 w-1 rounded-full bg-rio-primary/60 animate-bounce [animation-delay:-0.3s]" />

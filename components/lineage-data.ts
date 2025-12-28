@@ -552,7 +552,7 @@ export const RIO_3_NODES: LineageNode[] = [
   })),
   // The merged Rio 3 Preview
   {
-    id: 'rio-3-preview',
+    id: 'rio-3.0-preview',
     label: 'Rio 3 Preview',
     x: 2,
     y: 3,

@@ -31,7 +31,7 @@ export const RIO_MODELS: Model[] = [
     Icon: Sparkles,
     tags: ['Flagship', 'State-of-the-art', 'Deepthink Merging'],
     parameters: '800 Bilhões (30B ativados)',
-    supportsChat: false, // API coming soon under rio-3.0
+    supportsChat: true,
     codeSnippets: [
       {
         lang: 'cURL',
@@ -40,7 +40,7 @@ export const RIO_MODELS: Model[] = [
 -H "Authorization: Bearer $RIO_API_KEY" \\
 -H "Content-Type: application/json" \\
 -d '{
-  "model": "rio-3.0",
+  "model": "rio-3.0-preview",
   "messages": [{"role": "user", "content": "Resolva este problema de matemática avançada."}]
 }'`,
       },

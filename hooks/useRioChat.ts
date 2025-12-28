@@ -33,11 +33,10 @@ interface UseRioChatOptions {
 const DEFAULT_API_URL = '/api/chat';
 const DEFAULT_MODEL = 'rio-2.5';
 const DEFAULT_SYSTEM_PROMPT =
-  'Você é o Rio, um agente de IA desenvolvido na Prefeitura do Rio a partir de modelos chineses. Esse chat é uma demo com cidadãos onde eles podem interagir contigo e conversar sobre qualquer tópico. Seja amigável e respeitoso, sempre buscando atender da melhor maneira possível o cidadão.';
-const DEFAULT_HISTORY_LIMIT = 10;
+  'Seja amigável e respeitoso, sempre buscando atender da melhor maneira possível. Responda na mesma língua que o usuário estiver usando.';
+const DEFAULT_HISTORY_LIMIT = 30;
 const DEFAULT_ERROR_MESSAGE =
   'Desculpe, ocorreu um erro ao me comunicar com a API. Por favor, tente novamente mais tarde.';
-
 
 export function useRioChat(options: UseRioChatOptions = {}) {
   const {

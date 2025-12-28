@@ -113,7 +113,7 @@ const Letter: React.FC<{ char: string; index: number; startAnimation: boolean }>
 
 export const HeroTitleAnimation: React.FC<{ onComplete?: () => void }> = ({ onComplete }) => {
   const [start, setStart] = useState(false);
-  const text = 'Rio 2.5';
+  const text = 'Rio 3';
   const chars = text.split('');
 
   useEffect(() => {
@@ -140,7 +140,7 @@ export const HeroTitleAnimation: React.FC<{ onComplete?: () => void }> = ({ onCo
   return (
     <h1
       className="text-5xl font-black tracking-tight sm:text-6xl md:text-7xl lg:text-8xl flex flex-wrap justify-center gap-[0.05em]"
-      aria-label="Rio 2.5"
+      aria-label="Rio 3"
     >
       {chars.map((c, i) => (
         <Letter key={i} char={c} index={i} startAnimation={start} />

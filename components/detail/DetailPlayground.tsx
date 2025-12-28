@@ -57,8 +57,8 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
     <div className={`flex px-3 py-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`relative max-w-[85%] rounded-2xl border ${isUser
-            ? 'border-blue-100 bg-blue-50/90 text-slate-800 shadow-[0_18px_28px_-24px_rgba(0,43,127,0.55)]'
-            : 'border-slate-200 bg-white shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)]'
+          ? 'border-blue-100 bg-blue-50/90 text-slate-800 shadow-[0_18px_28px_-24px_rgba(0,43,127,0.55)]'
+          : 'border-slate-200 bg-white shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)]'
           } px-4 py-3 text-sm leading-relaxed`}
       >
         <ReactMarkdown
@@ -276,7 +276,16 @@ export const DetailPlayground: React.FC<{ modelName: string }> = ({ modelName })
     [modelName]
   );
 
+  const modelId = useMemo(() => {
+    if (modelName.includes('Rio 3')) return 'rio-3.0-preview';
+    if (modelName.includes('Open') && modelName.includes('2.5')) return 'rio-2.5-open';
+    if (modelName.includes('Open') && modelName.includes('2.0')) return 'rio-2.0-14b';
+    if (modelName.includes('2.5')) return 'rio-2.5';
+    return 'rio-2.5'; // fallback
+  }, [modelName]);
+
   const { messages, input, setInput, isLoading, handleSubmit } = useRioChat({
+    model: modelId,
     initialMessages,
     systemPrompt: null,
     historyLimit: null,

@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Square,
+  Brain,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Highlight, Language, themes } from 'prism-react-renderer';
@@ -487,8 +488,42 @@ type FeedbackState = {
 };
 
 export const ChatSection = () => {
-  const [isFastModel, setIsFastModel] = useState(false);
-  const currentModel = isFastModel ? 'rio-2.5-fast' : 'rio-2.5';
+  const [selectedModelId, setSelectedModelId] = useState<'rio-2.5' | 'rio-2.5-fast' | 'rio-3.0-preview'>('rio-3.0-preview');
+  const currentModel = selectedModelId;
+
+  const chatModels = [
+    {
+      id: 'rio-2.5' as const,
+      name: 'Rio 2.5',
+      label: 'Flagship',
+      icon: Sparkles,
+      color: 'text-rio-primary',
+      bgColor: 'bg-rio-primary/10',
+      description: 'Alta precisão',
+    },
+    {
+      id: 'rio-2.5-fast' as const,
+      name: 'Rio 2.5 Flash',
+      label: 'Veloz',
+      icon: Zap,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-100',
+      description: 'Respostas rápidas',
+    },
+    {
+      id: 'rio-3.0-preview' as const,
+      name: 'Rio 3',
+      label: 'Preview',
+      icon: Brain,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-100',
+      description: 'Estado da arte',
+    },
+  ];
+
+  const currentModelData = chatModels.find((m) => m.id === selectedModelId) || chatModels[0];
+  if (!currentModelData) throw new Error("Default model not found");
+  const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
 
   const {
     messages,
@@ -566,10 +601,12 @@ export const ChatSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateOnScroll className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-prose sm:text-4xl">
-            Converse com o Rio 2.5
+            Converse com o {currentModelData.name}
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-prose-light">
-            Faça uma pergunta para nosso modelo flagship.
+            {selectedModelId === 'rio-3.0-preview'
+              ? 'Experimente o futuro com nosso modelo mais avançado até agora.'
+              : 'Faça uma pergunta para nosso modelo flagship.'}
           </p>
         </AnimateOnScroll>
         <AnimateOnScroll delay={200} className="mt-12 max-w-3xl mx-auto">
@@ -594,7 +631,7 @@ export const ChatSection = () => {
                   onFeedback={handleFeedback}
                 />
               ))}
-              {isLoading && <ThinkingAnimation />}
+              {isLoading && <ThinkingAnimation modelName={currentModelData.name} />}
               <div ref={chatEndRef} />
             </div>
             <div className="border-t border-slate-200 bg-white p-4">
@@ -615,44 +652,71 @@ export const ChatSection = () => {
 
               <form
                 onSubmit={handleFormSubmit}
-                className={`group flex items-center gap-2 rounded-2xl border bg-white p-1.5 pl-3 shadow-sm transition-all duration-300 ${isFastModel
+                className={`group relative flex items-center gap-2 rounded-2xl border bg-white p-1.5 pl-3 shadow-sm transition-all duration-500 ${selectedModelId === 'rio-2.5-fast'
                   ? 'border-amber-200 focus-within:border-amber-400 focus-within:ring-4 focus-within:ring-amber-500/10'
-                  : 'border-slate-200 focus-within:border-rio-primary focus-within:ring-4 focus-within:ring-rio-primary/10'
+                  : selectedModelId === 'rio-3.0-preview'
+                    ? 'border-indigo-200 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-500/10'
+                    : 'border-slate-200 focus-within:border-rio-primary focus-within:ring-4 focus-within:ring-rio-primary/10'
                   }`}
               >
                 <div className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => setIsFastModel(!isFastModel)}
-                    className={`flex items-center gap-2 rounded-xl py-1.5 pl-2 pr-3 text-xs font-medium transition-all duration-300 hover:bg-slate-100 ${isFastModel ? 'text-amber-600' : 'text-rio-primary'
-                      }`}
-                    title={
-                      isFastModel
-                        ? 'Mudar para Rio 2.5 (Alta precisão)'
-                        : 'Mudar para Rio 2.5 Flash (Rápido)'
-                    }
-                  >
-                    <div
-                      className={`relative flex h-6 w-6 items-center justify-center rounded-lg transition-colors duration-300 ${isFastModel ? 'bg-amber-100' : 'bg-rio-primary/10'
-                        }`}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
+                      className={`flex items-center gap-2 rounded-xl py-1.5 pl-2 pr-3 text-xs font-medium transition-all duration-300 hover:bg-slate-100 ${currentModelData.color}`}
+                      title="Mudar de modelo"
                     >
-                      <Sparkles
-                        className={`absolute h-3.5 w-3.5 transition-all duration-300 ${isFastModel ? 'scale-0 opacity-0' : 'scale-100 opacity-100'
-                          }`}
-                      />
-                      <Zap
-                        className={`absolute h-3.5 w-3.5 transition-all duration-300 ${isFastModel ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
-                          }`}
-                      />
-                    </div>
-                    <div className="flex flex-col items-start leading-none">
-                      <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider opacity-60">
-                        Modelo
-                      </span>
-                      <span className="font-semibold">{isFastModel ? 'Flash' : 'Rio 2.5'}</span>
-                    </div>
-                    <div className="ml-1 h-3 w-[1px] bg-slate-200" />
-                  </button>
+                      <div
+                        className={`relative flex h-6 w-6 items-center justify-center rounded-lg transition-all duration-500 ${currentModelData.bgColor}`}
+                      >
+                        <currentModelData.icon className="h-3.5 w-3.5 animate-in zoom-in duration-300" />
+                      </div>
+                      <div className="flex flex-col items-start leading-none transition-all duration-300">
+                        <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider opacity-60">
+                          Modelo
+                        </span>
+                        <span className="font-semibold">{currentModelData.name}</span>
+                      </div>
+                      <div className="ml-1 h-3 w-[1px] bg-slate-200" />
+                    </button>
+
+                    {isModelMenuOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setIsModelMenuOpen(false)}
+                        />
+                        <div className="absolute bottom-full left-0 z-20 mb-2 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                          {chatModels.map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedModelId(m.id);
+                                setIsModelMenuOpen(false);
+                              }}
+                              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-slate-50 ${selectedModelId === m.id ? 'bg-slate-50' : ''
+                                }`}
+                            >
+                              <div
+                                className={`flex h-8 w-8 items-center justify-center rounded-lg ${m.bgColor}`}
+                              >
+                                <m.icon className={`h-4 w-4 ${m.color}`} />
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-xs font-bold text-slate-700">{m.name}</span>
+                                <span className="text-[10px] text-slate-500">{m.description}</span>
+                              </div>
+                              {selectedModelId === m.id && (
+                                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-rio-primary" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 <input
@@ -662,9 +726,7 @@ export const ChatSection = () => {
                   placeholder={
                     editingState
                       ? 'Edite sua mensagem...'
-                      : isFastModel
-                        ? 'Perguntar para o Rio 2.5 Flash...'
-                        : 'Perguntar para o Rio 2.5...'
+                      : `Perguntar para o ${currentModelData.name}...`
                   }
                   className="flex-1 border-none bg-transparent px-2 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0"
                 />
@@ -687,9 +749,11 @@ export const ChatSection = () => {
                   <button
                     type="submit"
                     disabled={!input.trim()}
-                    className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 ${isFastModel
+                    className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-500 disabled:pointer-events-none disabled:opacity-50 ${selectedModelId === 'rio-2.5-fast'
                       ? 'bg-amber-500 text-white hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-500/25'
-                      : 'bg-rio-primary text-white hover:bg-rio-primary/90 hover:shadow-lg hover:shadow-rio-primary/25'
+                      : selectedModelId === 'rio-3.0-preview'
+                        ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/25'
+                        : 'bg-rio-primary text-white hover:bg-rio-primary/90 hover:shadow-lg hover:shadow-rio-primary/25'
                       }`}
                     aria-label="Enviar mensagem"
                   >

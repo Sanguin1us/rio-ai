@@ -1,11 +1,20 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import type { Model } from '../../types/index';
 import {
     ArrowLeft,
     ArrowUpRight,
     Merge,
-    Network,
     Sparkles,
+    Brain,
+    Code,
+    Sigma,
+    Languages,
+    Microscope,
+    GraduationCap,
+    Lightbulb,
+    Eye,
+    BarChart3,
+    Stethoscope,
 } from 'lucide-react';
 import { ComparisonChart } from './ComparisonChart';
 import {
@@ -22,6 +31,20 @@ interface Rio30DetailProps {
     model: Model;
     onBack: () => void;
 }
+
+// Expert models that were merged to create Rio 3
+const EXPERT_MODELS = [
+    { id: 1, name: 'Lógica', specialty: 'Raciocínio Lógico', icon: Brain, color: 'text-violet-600', bgColor: 'bg-violet-100', borderColor: 'border-violet-200', glowColor: 'bg-violet-400/30', particleColor: '#7c3aed' },
+    { id: 2, name: 'Código', specialty: 'Programação', icon: Code, color: 'text-emerald-600', bgColor: 'bg-emerald-100', borderColor: 'border-emerald-200', glowColor: 'bg-emerald-400/30', particleColor: '#059669' },
+    { id: 3, name: 'Matemática', specialty: 'Cálculos Avançados', icon: Sigma, color: 'text-blue-600', bgColor: 'bg-blue-100', borderColor: 'border-blue-200', glowColor: 'bg-blue-400/30', particleColor: '#2563eb' },
+    { id: 4, name: 'Linguagem', specialty: 'Processamento de Texto', icon: Languages, color: 'text-amber-600', bgColor: 'bg-amber-100', borderColor: 'border-amber-200', glowColor: 'bg-amber-400/30', particleColor: '#d97706' },
+    { id: 5, name: 'Ciência', specialty: 'Conhecimento Científico', icon: Microscope, color: 'text-cyan-600', bgColor: 'bg-cyan-100', borderColor: 'border-cyan-200', glowColor: 'bg-cyan-400/30', particleColor: '#0891b2' },
+    { id: 6, name: 'Aprendizado', specialty: 'Aprendizagem Contínua', icon: GraduationCap, color: 'text-rose-600', bgColor: 'bg-rose-100', borderColor: 'border-rose-200', glowColor: 'bg-rose-400/30', particleColor: '#e11d48' },
+    { id: 7, name: 'Criatividade', specialty: 'Geração Criativa', icon: Lightbulb, color: 'text-yellow-600', bgColor: 'bg-yellow-100', borderColor: 'border-yellow-200', glowColor: 'bg-yellow-400/30', particleColor: '#ca8a04' },
+    { id: 8, name: 'Visão', specialty: 'Processamento Visual', icon: Eye, color: 'text-indigo-600', bgColor: 'bg-indigo-100', borderColor: 'border-indigo-200', glowColor: 'bg-indigo-400/30', particleColor: '#4f46e5' },
+    { id: 9, name: 'Análise', specialty: 'Análise de Dados', icon: BarChart3, color: 'text-teal-600', bgColor: 'bg-teal-100', borderColor: 'border-teal-200', glowColor: 'bg-teal-400/30', particleColor: '#0d9488' },
+    { id: 10, name: 'Saúde', specialty: 'Conhecimento Médico', icon: Stethoscope, color: 'text-pink-600', bgColor: 'bg-pink-100', borderColor: 'border-pink-200', glowColor: 'bg-pink-400/30', particleColor: '#db2777' },
+];
 
 // Benchmarks for Rio 3.0 Preview
 const BENCHMARKS_MATH: Array<{ metric: string; scoreNoCode: string; scoreWithCode: string; note: string }> = [
@@ -190,13 +213,7 @@ const MrcrChart: React.FC = () => {
     );
 };
 
-interface ConnectorLayout {
-    width: number;
-    height: number;
-    instanceCenters: { x: number; y: number }[];
-    rioTop: number;
-    rioCenter: number;
-}
+
 
 const LABEL_POSITION_OVERRIDES: Partial<Record<string, LabelOverride>> = {
     'DeepSeek-v3.2-Speciale': 'bottom-right',
@@ -347,58 +364,11 @@ const METRIC_CONFIGS: Array<{
 
 
 export const Rio30Detail: React.FC<Rio30DetailProps> = ({ model, onBack }) => {
-    const connectorRef = useRef<HTMLDivElement | null>(null);
-    const instanceGridRef = useRef<HTMLDivElement | null>(null);
-    const rioRef = useRef<HTMLDivElement | null>(null);
-    const [connectorLayout, setConnectorLayout] = useState<ConnectorLayout | null>(null);
     const huggingFaceWeightsUrl = model.huggingFaceUrl;
 
-    const measureConnectorLayout = useCallback(() => {
-        if (!connectorRef.current || !instanceGridRef.current || !rioRef.current) {
-            return;
-        }
 
-        const containerRect = connectorRef.current.getBoundingClientRect();
-        const rioRect = rioRef.current.getBoundingClientRect();
-        const instanceNodes = Array.from(
-            instanceGridRef.current.querySelectorAll<HTMLElement>('[data-instance-card="true"]')
-        );
 
-        if (!instanceNodes.length) {
-            return;
-        }
 
-        const instanceCenters = instanceNodes.map((node) => {
-            const rect = node.getBoundingClientRect();
-            return {
-                x: rect.left - containerRect.left + rect.width / 2,
-                y: rect.bottom - containerRect.top,
-            };
-        });
-
-        setConnectorLayout({
-            width: containerRect.width,
-            height: containerRect.height,
-            instanceCenters,
-            rioTop: rioRect.top - containerRect.top,
-            rioCenter: rioRect.left - containerRect.left + rioRect.width / 2,
-        });
-    }, []);
-
-    useEffect(() => {
-        measureConnectorLayout();
-        if (typeof window === 'undefined') return undefined;
-        window.addEventListener('resize', measureConnectorLayout);
-        return () => window.removeEventListener('resize', measureConnectorLayout);
-    }, [measureConnectorLayout]);
-
-    const connectorMetrics = useMemo(() => {
-        if (!connectorLayout || connectorLayout.instanceCenters.length === 0) {
-            return null;
-        }
-        const mergeY = connectorLayout.rioTop - 40; // Merge point above Rio 3
-        return { mergeY };
-    }, [connectorLayout]);
 
     return (
         <div className="bg-white">
@@ -626,7 +596,7 @@ export const Rio30Detail: React.FC<Rio30DetailProps> = ({ model, onBack }) => {
 
                 {/* Deepthink Internalization Merging Section */}
                 <AnimateOnScroll>
-                    <section className="rounded-3xl border border-slate-200 bg-slate-50 p-6 sm:p-10">
+                    <section className="rounded-3xl border border-slate-200 bg-slate-50 p-6 sm:p-10 overflow-hidden">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rio-primary">
@@ -639,91 +609,247 @@ export const Rio30Detail: React.FC<Rio30DetailProps> = ({ model, onBack }) => {
                         </div>
                         <div className="mt-10 rounded-[32px] border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-6 sm:p-8">
                             <div className="flex flex-col gap-2">
-                                <h3 className="text-xl font-semibold text-prose">Pipeline de Fusão</h3>
-                                <p className="text-sm text-prose-light max-w-4xl">
-                                    O Rio 3.0 Preview foi criado através de Deepthink Internalization Merging,
-                                    <br />
-                                    um processo inovador que combina 10 instâncias do Rio 2.5 Omni
-                                    <br />
-                                    para criar um modelo com raciocínio mais profundo e consistente.
+                                <h3 className="text-xl font-semibold text-prose">10 especialistas → 1 inteligência unificada</h3>
+                                <p className="text-sm text-prose-light max-w-3xl">
+                                    10 modelos especializados são treinados independentemente e então fundidos em um único modelo através do método Deepthink Internalization Merging. O modelo resultante herda as capacidades de todos os especialistas.
                                 </p>
                             </div>
 
-                            <div className="mt-8 flex flex-col items-center gap-6">
-                                <div
-                                    ref={connectorRef}
-                                    className="relative flex w-full max-w-4xl flex-col items-center gap-8"
-                                >
-                                    {connectorMetrics && connectorLayout && (
-                                        <svg
-                                            className="pointer-events-none absolute inset-0 hidden h-full w-full text-slate-200 md:block"
-                                            preserveAspectRatio="none"
-                                            viewBox={`0 0 ${connectorLayout.width} ${Math.max(connectorLayout.height, 1)}`}
-                                            aria-hidden="true"
+                            {/* Radial Expert Visualization */}
+                            <div className="mt-12 relative">
+                                {/* Mobile: Grid layout */}
+                                <div className="md:hidden grid grid-cols-2 gap-3">
+                                    {EXPERT_MODELS.map((expert) => (
+                                        <div
+                                            key={expert.id}
+                                            className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
                                         >
-                                            {/* Lines from each instance to merge point */}
-                                            {connectorLayout.instanceCenters.map((center, index) => (
-                                                <g key={`connector-${index}`}>
-                                                    <line
-                                                        x1={center.x}
-                                                        y1={center.y}
-                                                        x2={connectorLayout.rioCenter}
-                                                        y2={connectorMetrics.mergeY}
-                                                        stroke="currentColor"
-                                                        strokeWidth={1.5}
-                                                    />
-                                                    <circle cx={center.x} cy={center.y} r={3} fill="currentColor" />
-                                                </g>
-                                            ))}
-                                            {/* Merge point */}
-                                            <circle
-                                                cx={connectorLayout.rioCenter}
-                                                cy={connectorMetrics.mergeY}
-                                                r={8}
-                                                fill="#1E40AF"
-                                                stroke="white"
-                                                strokeWidth={2}
-                                            />
-                                            {/* Line from merge point to Rio 3 */}
-                                            <line
-                                                x1={connectorLayout.rioCenter}
-                                                y1={connectorMetrics.mergeY}
-                                                x2={connectorLayout.rioCenter}
-                                                y2={connectorLayout.rioTop}
-                                                stroke="currentColor"
-                                                strokeWidth={1.5}
-                                            />
-                                        </svg>
-                                    )}
-
-                                    {/* 10 Rio 2.5 Omni instances */}
-                                    <div ref={instanceGridRef} className="relative z-10 grid w-full grid-cols-5 gap-3">
-                                        {Array.from({ length: 10 }, (_, i) => (
-                                            <div
-                                                key={`omni-instance-${i}`}
-                                                data-instance-card="true"
-                                                className="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
-                                            >
-                                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-                                                    <Network className="h-5 w-5 text-slate-600" />
-                                                </span>
-                                                <p className="text-[10px] font-medium text-prose text-center">
-                                                    Rio 2.5<br />Omni #{i + 1}
-                                                </p>
+                                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${expert.bgColor}`}>
+                                                <expert.icon className={`h-5 w-5 ${expert.color}`} />
+                                            </span>
+                                            <div className="min-w-0">
+                                                <p className="text-xs font-semibold text-prose truncate">{expert.name}</p>
+                                                <p className="text-[10px] text-prose-light truncate">{expert.specialty}</p>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))}
+                                </div>
 
-                                    {/* Merge indicator */}
-                                    <div className="relative z-10 flex items-center gap-3 rounded-2xl border border-rio-primary/30 bg-rio-primary/5 px-4 py-2">
+                                {/* Desktop: Convergence Synthesis */}
+                                <div className="hidden md:block relative h-[520px] overflow-hidden rounded-3xl bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+                                    {/* Subtle radial glow from center */}
+                                    <div
+                                        className="absolute inset-0 opacity-40"
+                                        style={{
+                                            background: 'radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)'
+                                        }}
+                                    />
+
+                                    {/* SVG Canvas */}
+                                    <svg
+                                        className="absolute inset-0 w-full h-full"
+                                        viewBox="0 0 800 520"
+                                        preserveAspectRatio="xMidYMid meet"
+                                    >
+                                        <defs>
+                                            {/* Unified color palette - emerald/teal theme */}
+                                            <linearGradient id="stream-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
+                                                <stop offset="50%" stopColor="#10b981" stopOpacity="1" />
+                                                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                                            </linearGradient>
+
+                                            {/* Core glow */}
+                                            <radialGradient id="core-glow" cx="50%" cy="50%" r="50%">
+                                                <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                                                <stop offset="30%" stopColor="#10b981" stopOpacity="0.9" />
+                                                <stop offset="70%" stopColor="#059669" stopOpacity="0.4" />
+                                                <stop offset="100%" stopColor="#047857" stopOpacity="0" />
+                                            </radialGradient>
+
+                                            {/* Soft glow filter */}
+                                            <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                                <feGaussianBlur stdDeviation="3" result="glow" />
+                                                <feMerge>
+                                                    <feMergeNode in="glow" />
+                                                    <feMergeNode in="SourceGraphic" />
+                                                </feMerge>
+                                            </filter>
+
+                                            {/* Particle glow */}
+                                            <filter id="particle-glow" x="-100%" y="-100%" width="300%" height="300%">
+                                                <feGaussianBlur stdDeviation="2" result="blur" />
+                                                <feMerge>
+                                                    <feMergeNode in="blur" />
+                                                    <feMergeNode in="blur" />
+                                                    <feMergeNode in="SourceGraphic" />
+                                                </feMerge>
+                                            </filter>
+                                        </defs>
+
+                                        {/* Curved paths from experts to center with flowing particles */}
+                                        {EXPERT_MODELS.map((expert, i) => {
+                                            const angleRad = (i * 36 - 90) * (Math.PI / 180);
+                                            const outerR = 200;
+                                            const startX = 400 + outerR * Math.cos(angleRad);
+                                            const startY = 260 + outerR * Math.sin(angleRad);
+
+                                            // Create curved path to center
+                                            const midAngle = angleRad + (Math.PI / 8) * (i % 2 === 0 ? 1 : -1);
+                                            const midR = outerR * 0.5;
+                                            const midX = 400 + midR * Math.cos(midAngle);
+                                            const midY = 260 + midR * Math.sin(midAngle);
+
+                                            const path = `M ${startX} ${startY} Q ${midX} ${midY} 400 260`;
+                                            const pathId = `flow-path-${i}`;
+
+                                            return (
+                                                <g key={`stream-${i}`}>
+                                                    {/* Define the path */}
+                                                    <path id={pathId} d={path} fill="none" stroke="none" />
+
+                                                    {/* Faint trail */}
+                                                    <path
+                                                        d={path}
+                                                        fill="none"
+                                                        stroke={expert.particleColor}
+                                                        strokeWidth="1"
+                                                        opacity="0.1"
+                                                    />
+
+                                                    {/* Flowing particle 1 */}
+                                                    <circle r="3" fill={expert.particleColor} filter="url(#particle-glow)">
+                                                        <animateMotion
+                                                            dur="2.5s"
+                                                            repeatCount="indefinite"
+                                                            begin={`${i * 0.2}s`}
+                                                        >
+                                                            <mpath href={`#${pathId}`} />
+                                                        </animateMotion>
+                                                        <animate
+                                                            attributeName="opacity"
+                                                            values="0;1;1;0"
+                                                            dur="2.5s"
+                                                            repeatCount="indefinite"
+                                                            begin={`${i * 0.2}s`}
+                                                        />
+                                                        <animate
+                                                            attributeName="r"
+                                                            values="2;4;2"
+                                                            dur="2.5s"
+                                                            repeatCount="indefinite"
+                                                            begin={`${i * 0.2}s`}
+                                                        />
+                                                    </circle>
+
+                                                    {/* Flowing particle 2 (offset) */}
+                                                    <circle r="2" fill={expert.particleColor} filter="url(#particle-glow)">
+                                                        <animateMotion
+                                                            dur="2.5s"
+                                                            repeatCount="indefinite"
+                                                            begin={`${i * 0.2 + 1.25}s`}
+                                                        >
+                                                            <mpath href={`#${pathId}`} />
+                                                        </animateMotion>
+                                                        <animate
+                                                            attributeName="opacity"
+                                                            values="0;0.7;0.7;0"
+                                                            dur="2.5s"
+                                                            repeatCount="indefinite"
+                                                            begin={`${i * 0.2 + 1.25}s`}
+                                                        />
+                                                    </circle>
+                                                </g>
+                                            );
+                                        })}
+
+                                        {/* Central Core - The Unified Mind */}
+                                        <g transform="translate(400, 260)">
+                                            {/* Outer pulse ring */}
+                                            <circle r="50" fill="none" stroke="#10b981" strokeWidth="1" opacity="0.3">
+                                                <animate attributeName="r" values="50;65;50" dur="4s" repeatCount="indefinite" />
+                                                <animate attributeName="opacity" values="0.3;0.1;0.3" dur="4s" repeatCount="indefinite" />
+                                            </circle>
+
+                                            {/* Inner pulse ring */}
+                                            <circle r="35" fill="none" stroke="#10b981" strokeWidth="1.5" opacity="0.5">
+                                                <animate attributeName="r" values="35;45;35" dur="3s" repeatCount="indefinite" />
+                                                <animate attributeName="opacity" values="0.5;0.2;0.5" dur="3s" repeatCount="indefinite" />
+                                            </circle>
+
+                                            {/* Core sphere */}
+                                            <circle r="28" fill="url(#core-glow)" filter="url(#soft-glow)">
+                                                <animate attributeName="r" values="28;31;28" dur="2s" repeatCount="indefinite" />
+                                            </circle>
+
+                                            {/* Inner bright core */}
+                                            <circle r="12" fill="#ffffff" opacity="0.9">
+                                                <animate attributeName="opacity" values="0.9;1;0.9" dur="1.5s" repeatCount="indefinite" />
+                                            </circle>
+                                        </g>
+                                    </svg>
+
+                                    {/* Expert Nodes - Clean icons around the perimeter */}
+                                    {EXPERT_MODELS.map((expert, i) => {
+                                        const angleRad = (i * 36 - 90) * (Math.PI / 180);
+                                        const radius = 200;
+                                        const x = radius * Math.cos(angleRad);
+                                        const y = radius * Math.sin(angleRad);
+
+                                        return (
+                                            <div
+                                                key={`node-${expert.id}`}
+                                                className="absolute group"
+                                                style={{
+                                                    left: '50%',
+                                                    top: '50%',
+                                                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+                                                }}
+                                            >
+                                                <div className="relative flex flex-col items-center">
+                                                    {/* Node circle */}
+                                                    <div
+                                                        className="flex h-11 w-11 items-center justify-center rounded-full border-2 bg-slate-900/90 backdrop-blur-sm transition-all duration-300 group-hover:scale-110"
+                                                        style={{
+                                                            borderColor: expert.particleColor,
+                                                            boxShadow: `0 0 20px ${expert.particleColor}40`
+                                                        }}
+                                                    >
+                                                        <expert.icon size={18} style={{ color: expert.particleColor }} />
+                                                    </div>
+
+                                                    {/* Label */}
+                                                    <div className="absolute top-12 flex flex-col items-center opacity-60 group-hover:opacity-100 transition-opacity">
+                                                        <span
+                                                            className="text-[10px] font-semibold tracking-wide uppercase"
+                                                            style={{ color: expert.particleColor }}
+                                                        >
+                                                            {expert.name}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* Central Label */}
+                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none mt-16">
+                                        <span className="text-2xl font-bold text-white tracking-tight">Rio 3</span>
+                                    </div>
+                                </div>
+
+                                {/* Mobile: Simple merge indicator */}
+                                <div className="md:hidden mt-6 flex flex-col items-center gap-4">
+                                    <div className="flex items-center gap-3 rounded-2xl border border-rio-primary/30 bg-rio-primary/5 px-4 py-2">
                                         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rio-primary/20">
                                             <Merge className="h-5 w-5 text-rio-primary" />
                                         </span>
                                         <p className="text-sm font-semibold text-rio-primary">Deepthink Merging</p>
                                     </div>
-
-                                    {/* Final Rio 3 Preview */}
-                                    <div ref={rioRef} className="relative z-10 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-5 py-4 shadow-md">
+                                    <svg className="h-8 w-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                    </svg>
+                                    <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-5 py-4 shadow-md">
                                         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50">
                                             <Sparkles className="h-6 w-6 text-emerald-600" />
                                         </span>
@@ -734,9 +860,9 @@ export const Rio30Detail: React.FC<Rio30DetailProps> = ({ model, onBack }) => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
-                </AnimateOnScroll>
+                        </div >
+                    </section >
+                </AnimateOnScroll >
 
                 <AnimateOnScroll>
                     <section className="grid gap-12 lg:grid-cols-5">
@@ -749,7 +875,7 @@ export const Rio30Detail: React.FC<Rio30DetailProps> = ({ model, onBack }) => {
                         </div>
                     </section>
                 </AnimateOnScroll>
-            </div>
+            </div >
         </div >
     );
 };
