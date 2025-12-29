@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Model } from '../../types/index';
 import {
     ArrowLeft,
@@ -635,208 +635,305 @@ export const Rio30Detail: React.FC<Rio30DetailProps> = ({ model, onBack }) => {
                                     ))}
                                 </div>
 
-                                {/* Desktop: Convergence Synthesis */}
-                                <div className="hidden md:block relative h-[520px] overflow-hidden rounded-3xl bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-                                    {/* Subtle radial glow from center */}
-                                    <div
-                                        className="absolute inset-0 opacity-40"
-                                        style={{
-                                            background: 'radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)'
-                                        }}
-                                    />
+                                {/* Desktop: Phased Storytelling Animation */}
+                                {(() => {
+                                    // Animation phases:
+                                    // 0 = empty
+                                    // 1 = Rio 2.5 appears
+                                    // 2 = Distribution (Rio 2.5 sends packages to experts)
+                                    // 3 = Rio 2.5 fades out (experts fully visible)
+                                    // 4 = Pause (Empty center, experts surrounding)
+                                    // 5 = Convergence (Experts send knowledge to center)
+                                    // 6 = Rio 3 appears
+                                    const [phase, setPhase] = React.useState(0);
+                                    const [hasTriggered, setHasTriggered] = React.useState(false);
+                                    const containerRef = React.useRef<HTMLDivElement>(null);
 
-                                    {/* SVG Canvas */}
-                                    <svg
-                                        className="absolute inset-0 w-full h-full"
-                                        viewBox="0 0 800 520"
-                                        preserveAspectRatio="xMidYMid meet"
-                                    >
-                                        <defs>
-                                            {/* Unified color palette - emerald/teal theme */}
-                                            <linearGradient id="stream-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
-                                                <stop offset="50%" stopColor="#10b981" stopOpacity="1" />
-                                                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                                            </linearGradient>
+                                    React.useEffect(() => {
+                                        if (hasTriggered || typeof window === 'undefined') return;
 
-                                            {/* Core glow */}
-                                            <radialGradient id="core-glow" cx="50%" cy="50%" r="50%">
-                                                <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                                                <stop offset="30%" stopColor="#10b981" stopOpacity="0.9" />
-                                                <stop offset="70%" stopColor="#059669" stopOpacity="0.4" />
-                                                <stop offset="100%" stopColor="#047857" stopOpacity="0" />
-                                            </radialGradient>
+                                        const observer = new IntersectionObserver(
+                                            (entries) => {
+                                                if (entries[0].isIntersecting && !hasTriggered) {
+                                                    setHasTriggered(true);
+                                                    // Precise Story Timeline
+                                                    setTimeout(() => setPhase(1), 500);    // Rio 2.5 appears
+                                                    setTimeout(() => setPhase(2), 2000);   // START DISTRIBUTION: Packages fly out
+                                                    // Flight time is ~1.5s + stagger. Last package lands around 2000 + 900 + 1500 = 4400ms
+                                                    setTimeout(() => setPhase(3), 4500);   // All delivered. Rio 2.5 fades out.
+                                                    setTimeout(() => setPhase(4), 5500);   // Brief pause with empty center
+                                                    setTimeout(() => setPhase(5), 6500);   // CONVERGENCE: Flow to center
+                                                    setTimeout(() => setPhase(6), 9000);   // Rio 3 emerges from the influx
+                                                }
+                                            },
+                                            { threshold: 0.4 }
+                                        );
 
-                                            {/* Soft glow filter */}
-                                            <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
-                                                <feGaussianBlur stdDeviation="3" result="glow" />
-                                                <feMerge>
-                                                    <feMergeNode in="glow" />
-                                                    <feMergeNode in="SourceGraphic" />
-                                                </feMerge>
-                                            </filter>
+                                        if (containerRef.current) {
+                                            observer.observe(containerRef.current);
+                                        }
 
-                                            {/* Particle glow */}
-                                            <filter id="particle-glow" x="-100%" y="-100%" width="300%" height="300%">
-                                                <feGaussianBlur stdDeviation="2" result="blur" />
-                                                <feMerge>
-                                                    <feMergeNode in="blur" />
-                                                    <feMergeNode in="blur" />
-                                                    <feMergeNode in="SourceGraphic" />
-                                                </feMerge>
-                                            </filter>
-                                        </defs>
+                                        return () => observer.disconnect();
+                                    }, [hasTriggered]);
 
-                                        {/* Curved paths from experts to center with flowing particles */}
-                                        {EXPERT_MODELS.map((expert, i) => {
-                                            const angleRad = (i * 36 - 90) * (Math.PI / 180);
-                                            const outerR = 200;
-                                            const startX = 400 + outerR * Math.cos(angleRad);
-                                            const startY = 260 + outerR * Math.sin(angleRad);
+                                    return (
+                                        <div
+                                            ref={containerRef}
+                                            className="hidden md:block relative h-[520px] overflow-hidden rounded-3xl bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+                                        >
+                                            {/* Background Effects */}
+                                            <div
+                                                className="absolute inset-0 transition-opacity duration-1000"
+                                                style={{
+                                                    background: 'radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 50%)',
+                                                    opacity: phase >= 5 ? 0.6 : 0.2
+                                                }}
+                                            />
 
-                                            // Create curved path to center
-                                            const midAngle = angleRad + (Math.PI / 8) * (i % 2 === 0 ? 1 : -1);
-                                            const midR = outerR * 0.5;
-                                            const midX = 400 + midR * Math.cos(midAngle);
-                                            const midY = 260 + midR * Math.sin(midAngle);
+                                            <svg
+                                                className="absolute inset-0 w-full h-full"
+                                                viewBox="0 0 800 520"
+                                                preserveAspectRatio="xMidYMid meet"
+                                            >
+                                                <defs>
+                                                    <radialGradient id="core-glow" cx="50%" cy="50%" r="50%">
+                                                        <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                                                        <stop offset="30%" stopColor="#10b981" stopOpacity="0.9" />
+                                                        <stop offset="70%" stopColor="#059669" stopOpacity="0.4" />
+                                                        <stop offset="100%" stopColor="#047857" stopOpacity="0" />
+                                                    </radialGradient>
+                                                    <radialGradient id="rio25-glow" cx="50%" cy="50%" r="50%">
+                                                        <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                                                        <stop offset="30%" stopColor="#3b82f6" stopOpacity="0.9" />
+                                                        <stop offset="70%" stopColor="#1d4ed8" stopOpacity="0.4" />
+                                                        <stop offset="100%" stopColor="#1e40af" stopOpacity="0" />
+                                                    </radialGradient>
+                                                    <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                                        <feGaussianBlur stdDeviation="3" result="glow" />
+                                                        <feMerge>
+                                                            <feMergeNode in="glow" />
+                                                            <feMergeNode in="SourceGraphic" />
+                                                        </feMerge>
+                                                    </filter>
+                                                    <filter id="particle-glow" x="-100%" y="-100%" width="300%" height="300%">
+                                                        <feGaussianBlur stdDeviation="2" result="blur" />
+                                                        <feMerge>
+                                                            <feMergeNode in="blur" />
+                                                            <feMergeNode in="blur" />
+                                                            <feMergeNode in="SourceGraphic" />
+                                                        </feMerge>
+                                                    </filter>
+                                                </defs>
 
-                                            const path = `M ${startX} ${startY} Q ${midX} ${midY} 400 260`;
-                                            const pathId = `flow-path-${i}`;
+                                                {/* Phase 2 ONLY: Distribution 'Packages' (Center -> Experts) - renders once */}
+                                                {phase === 2 && EXPERT_MODELS.map((expert, i) => {
+                                                    const angleRad = (i * 36 - 90) * (Math.PI / 180);
+                                                    const outerR = 200;
+                                                    const endX = 400 + outerR * Math.cos(angleRad);
+                                                    const endY = 260 + outerR * Math.sin(angleRad);
 
-                                            return (
-                                                <g key={`stream-${i}`}>
-                                                    {/* Define the path */}
-                                                    <path id={pathId} d={path} fill="none" stroke="none" />
+                                                    // Straight line trajectory for precise "shooting" effect
+                                                    const path = `M 400 260 L ${endX} ${endY}`;
+                                                    const pathId = `dist-path-${i}`;
+                                                    const staggerMs = i * 100; // 100ms stagger
+                                                    const duration = 1.5;
 
-                                                    {/* Faint trail */}
-                                                    <path
-                                                        d={path}
-                                                        fill="none"
-                                                        stroke={expert.particleColor}
-                                                        strokeWidth="1"
-                                                        opacity="0.1"
-                                                    />
+                                                    // Trigger animations manually with STAGGER
+                                                    const handleMount = (el: SVGAnimationElement | null) => {
+                                                        if (el) {
+                                                            setTimeout(() => {
+                                                                try { el.beginElement(); } catch (e) { }
+                                                            }, staggerMs + 10); // +10ms buffer
+                                                        }
+                                                    };
 
-                                                    {/* Flowing particle 1 */}
-                                                    <circle r="3" fill={expert.particleColor} filter="url(#particle-glow)">
-                                                        <animateMotion
-                                                            dur="2.5s"
-                                                            repeatCount="indefinite"
-                                                            begin={`${i * 0.2}s`}
-                                                        >
-                                                            <mpath href={`#${pathId}`} />
-                                                        </animateMotion>
-                                                        <animate
-                                                            attributeName="opacity"
-                                                            values="0;1;1;0"
-                                                            dur="2.5s"
-                                                            repeatCount="indefinite"
-                                                            begin={`${i * 0.2}s`}
-                                                        />
-                                                        <animate
-                                                            attributeName="r"
-                                                            values="2;4;2"
-                                                            dur="2.5s"
-                                                            repeatCount="indefinite"
-                                                            begin={`${i * 0.2}s`}
-                                                        />
+                                                    return (
+                                                        <g key={`dist-pkg-${i}`}>
+                                                            <path id={pathId} d={path} fill="none" stroke="none" />
+
+                                                            {/* The 'Package' - SINGLE visible bright orb, starts invisible */}
+                                                            <circle r="0" fill="#ffffff" opacity="0" filter="url(#particle-glow)">
+                                                                <animateMotion
+                                                                    id={`anim-motion-${i}`}
+                                                                    ref={handleMount}
+                                                                    dur={`${duration}s`}
+                                                                    fill="freeze"
+                                                                    begin="indefinite"
+                                                                    keyPoints="0;1"
+                                                                    keyTimes="0;1"
+                                                                    calcMode="linear"
+                                                                >
+                                                                    <mpath href={`#${pathId}`} />
+                                                                </animateMotion>
+                                                                {/* Fade in at start, vanish upon arrival */}
+                                                                <animate
+                                                                    ref={handleMount}
+                                                                    attributeName="opacity"
+                                                                    values="0;1;1;0"
+                                                                    keyTimes="0;0.1;0.9;1"
+                                                                    dur={`${duration}s`}
+                                                                    fill="freeze"
+                                                                    begin="indefinite"
+                                                                />
+                                                                {/* Grow then shrink */}
+                                                                <animate
+                                                                    ref={handleMount}
+                                                                    attributeName="r"
+                                                                    values="0;6;6;0"
+                                                                    keyTimes="0;0.1;0.9;1"
+                                                                    dur={`${duration}s`}
+                                                                    fill="freeze"
+                                                                    begin="indefinite"
+                                                                />
+                                                            </circle>
+                                                        </g>
+                                                    );
+                                                })}
+
+                                                {/* Phase 5+: Convergence Streams (Experts -> Center) */}
+                                                {phase >= 5 && EXPERT_MODELS.map((expert, i) => {
+                                                    const angleRad = (i * 36 - 90) * (Math.PI / 180);
+                                                    const outerR = 200;
+                                                    const startX = 400 + outerR * Math.cos(angleRad);
+                                                    const startY = 260 + outerR * Math.sin(angleRad);
+
+                                                    const midAngle = angleRad + (Math.PI / 8) * (i % 2 === 0 ? 1 : -1);
+                                                    const midR = outerR * 0.5;
+                                                    const midX = 400 + midR * Math.cos(midAngle);
+                                                    const midY = 260 + midR * Math.sin(midAngle);
+
+                                                    const path = `M ${startX} ${startY} Q ${midX} ${midY} 400 260`;
+                                                    const pathId = `conv-path-${i}`;
+
+                                                    return (
+                                                        <g key={`conv-stream-${i}`}>
+                                                            <path id={pathId} d={path} fill="none" stroke="none" />
+                                                            <path d={path} fill="none" stroke={expert.particleColor} strokeWidth="1" opacity="0.1" />
+
+                                                            <circle r="3" fill={expert.particleColor} filter="url(#particle-glow)">
+                                                                <animateMotion dur="2.5s" repeatCount="indefinite" begin={`${i * 0.2}s`}>
+                                                                    <mpath href={`#${pathId}`} />
+                                                                </animateMotion>
+                                                                <animate attributeName="opacity" values="0;1;1;0" dur="2.5s" repeatCount="indefinite" begin={`${i * 0.2}s`} />
+                                                                <animate attributeName="r" values="2;4;2" dur="2.5s" repeatCount="indefinite" begin={`${i * 0.2}s`} />
+                                                            </circle>
+
+                                                            <circle r="2" fill={expert.particleColor} filter="url(#particle-glow)">
+                                                                <animateMotion dur="2.5s" repeatCount="indefinite" begin={`${i * 0.2 + 1.25}s`}>
+                                                                    <mpath href={`#${pathId}`} />
+                                                                </animateMotion>
+                                                                <animate attributeName="opacity" values="0;0.7;0.7;0" dur="2.5s" repeatCount="indefinite" begin={`${i * 0.2 + 1.25}s`} />
+                                                            </circle>
+                                                        </g>
+                                                    );
+                                                })}
+
+                                                {/* Rio 2.5 Core */}
+                                                <g transform="translate(400, 260)"
+                                                    style={{
+                                                        opacity: phase >= 1 && phase < 3 ? 1 : 0,
+                                                        transition: 'opacity 1s ease-in-out',
+                                                        transitionDelay: phase < 3 ? '0s' : '0.5s' // Wait slightly before fading
+                                                    }}>
+                                                    <circle r="28" fill="url(#rio25-glow)" filter="url(#soft-glow)">
+                                                        <animate attributeName="r" values="28;32;28" dur="3s" repeatCount="indefinite" />
                                                     </circle>
-
-                                                    {/* Flowing particle 2 (offset) */}
-                                                    <circle r="2" fill={expert.particleColor} filter="url(#particle-glow)">
-                                                        <animateMotion
-                                                            dur="2.5s"
-                                                            repeatCount="indefinite"
-                                                            begin={`${i * 0.2 + 1.25}s`}
-                                                        >
-                                                            <mpath href={`#${pathId}`} />
-                                                        </animateMotion>
-                                                        <animate
-                                                            attributeName="opacity"
-                                                            values="0;0.7;0.7;0"
-                                                            dur="2.5s"
-                                                            repeatCount="indefinite"
-                                                            begin={`${i * 0.2 + 1.25}s`}
-                                                        />
+                                                    <circle r="12" fill="#ffffff" opacity="0.9">
+                                                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" repeatCount="indefinite" />
                                                     </circle>
                                                 </g>
-                                            );
-                                        })}
 
-                                        {/* Central Core - The Unified Mind */}
-                                        <g transform="translate(400, 260)">
-                                            {/* Outer pulse ring */}
-                                            <circle r="50" fill="none" stroke="#10b981" strokeWidth="1" opacity="0.3">
-                                                <animate attributeName="r" values="50;65;50" dur="4s" repeatCount="indefinite" />
-                                                <animate attributeName="opacity" values="0.3;0.1;0.3" dur="4s" repeatCount="indefinite" />
-                                            </circle>
+                                                {/* Rio 3 Core */}
+                                                <g transform="translate(400, 260)"
+                                                    style={{
+                                                        opacity: phase >= 6 ? 1 : 0,
+                                                        transition: 'opacity 1.5s ease-in-out'
+                                                    }}>
+                                                    <circle r="50" fill="none" stroke="#10b981" strokeWidth="1" opacity="0.3">
+                                                        <animate attributeName="r" values="50;65;50" dur="4s" repeatCount="indefinite" />
+                                                        <animate attributeName="opacity" values="0.3;0.1;0.3" dur="4s" repeatCount="indefinite" />
+                                                    </circle>
+                                                    <circle r="35" fill="none" stroke="#10b981" strokeWidth="1.5" opacity="0.5">
+                                                        <animate attributeName="r" values="35;45;35" dur="3s" repeatCount="indefinite" />
+                                                        <animate attributeName="opacity" values="0.5;0.2;0.5" dur="3s" repeatCount="indefinite" />
+                                                    </circle>
+                                                    <circle r="28" fill="url(#core-glow)" filter="url(#soft-glow)">
+                                                        <animate attributeName="r" values="28;31;28" dur="2s" repeatCount="indefinite" />
+                                                    </circle>
+                                                    <circle r="12" fill="#ffffff" opacity="0.9">
+                                                        <animate attributeName="opacity" values="0.9;1;0.9" dur="1.5s" repeatCount="indefinite" />
+                                                    </circle>
+                                                </g>
+                                            </svg>
 
-                                            {/* Inner pulse ring */}
-                                            <circle r="35" fill="none" stroke="#10b981" strokeWidth="1.5" opacity="0.5">
-                                                <animate attributeName="r" values="35;45;35" dur="3s" repeatCount="indefinite" />
-                                                <animate attributeName="opacity" values="0.5;0.2;0.5" dur="3s" repeatCount="indefinite" />
-                                            </circle>
+                                            {/* Expert Nodes - Appear ON ARRIVAL of package */}
+                                            {EXPERT_MODELS.map((expert, i) => {
+                                                const angleRad = (i * 36 - 90) * (Math.PI / 180);
+                                                const radius = 200;
+                                                const x = radius * Math.cos(angleRad);
+                                                const y = radius * Math.sin(angleRad);
 
-                                            {/* Core sphere */}
-                                            <circle r="28" fill="url(#core-glow)" filter="url(#soft-glow)">
-                                                <animate attributeName="r" values="28;31;28" dur="2s" repeatCount="indefinite" />
-                                            </circle>
+                                                // Calculate arrival time for this specific expert's package
+                                                // Matches the SVG animation: begin={i * 0.1s}, dur={1.5s}
+                                                // So arrival is at T + (i*0.1 + 1.5)s
+                                                // We want transition-delay to coordinate this.
+                                                // If phase becomes 2, opacity becomes 1, but with delay.
+                                                const arrivalDelay = (i * 100) + 1500; // ms
 
-                                            {/* Inner bright core */}
-                                            <circle r="12" fill="#ffffff" opacity="0.9">
-                                                <animate attributeName="opacity" values="0.9;1;0.9" dur="1.5s" repeatCount="indefinite" />
-                                            </circle>
-                                        </g>
-                                    </svg>
-
-                                    {/* Expert Nodes - Clean icons around the perimeter */}
-                                    {EXPERT_MODELS.map((expert, i) => {
-                                        const angleRad = (i * 36 - 90) * (Math.PI / 180);
-                                        const radius = 200;
-                                        const x = radius * Math.cos(angleRad);
-                                        const y = radius * Math.sin(angleRad);
-
-                                        return (
-                                            <div
-                                                key={`node-${expert.id}`}
-                                                className="absolute group"
-                                                style={{
-                                                    left: '50%',
-                                                    top: '50%',
-                                                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
-                                                }}
-                                            >
-                                                <div className="relative flex flex-col items-center">
-                                                    {/* Node circle */}
+                                                return (
                                                     <div
-                                                        className="flex h-11 w-11 items-center justify-center rounded-full border-2 bg-slate-900/90 backdrop-blur-sm transition-all duration-300 group-hover:scale-110"
+                                                        key={`node-${expert.id}`}
+                                                        className="absolute group"
                                                         style={{
-                                                            borderColor: expert.particleColor,
-                                                            boxShadow: `0 0 20px ${expert.particleColor}40`
+                                                            left: '50%',
+                                                            top: '50%',
+                                                            transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                                                            opacity: phase >= 2 ? 1 : 0,
+                                                            scale: phase >= 2 ? '1' : '0.5',
+                                                            transition: 'opacity 0.2s ease-out, scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                                            // Key logic: Delay appearance until package hits. Short opacity transition (0.2s) for 'pop' effect.
+                                                            transitionDelay: phase === 2 ? `${arrivalDelay}ms` : '0ms'
                                                         }}
                                                     >
-                                                        <expert.icon size={18} style={{ color: expert.particleColor }} />
+                                                        <div className="relative flex flex-col items-center">
+                                                            <div
+                                                                className="flex h-11 w-11 items-center justify-center rounded-full border-2 bg-slate-900/90 backdrop-blur-sm transition-all duration-300 group-hover:scale-110"
+                                                                style={{
+                                                                    borderColor: expert.particleColor,
+                                                                    boxShadow: `0 0 20px ${expert.particleColor}40`
+                                                                }}
+                                                            >
+                                                                <expert.icon size={18} style={{ color: expert.particleColor }} />
+                                                            </div>
+                                                            <div className="absolute top-12 flex flex-col items-center opacity-60 group-hover:opacity-100 transition-opacity">
+                                                                <span
+                                                                    className="text-[10px] font-semibold tracking-wide uppercase"
+                                                                    style={{ color: expert.particleColor }}
+                                                                >
+                                                                    {expert.name}
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </div>
+                                                );
+                                            })}
 
-                                                    {/* Label */}
-                                                    <div className="absolute top-12 flex flex-col items-center opacity-60 group-hover:opacity-100 transition-opacity">
-                                                        <span
-                                                            className="text-[10px] font-semibold tracking-wide uppercase"
-                                                            style={{ color: expert.particleColor }}
-                                                        >
-                                                            {expert.name}
-                                                        </span>
-                                                    </div>
-                                                </div>
+                                            {/* Central Label */}
+                                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none mt-16">
+                                                <span
+                                                    className="text-2xl font-bold tracking-tight transition-all duration-500"
+                                                    style={{
+                                                        color: phase >= 6 ? '#ffffff' : '#93c5fd',
+                                                        opacity: (phase >= 1 && phase < 4) || phase >= 6 ? 1 : 0,
+                                                        transform: phase >= 5 && phase < 6 ? 'scale(0.9)' : 'scale(1)'
+                                                    }}
+                                                >
+                                                    {phase >= 6 ? 'Rio 3' : 'Rio 2.5'}
+                                                </span>
                                             </div>
-                                        );
-                                    })}
-
-                                    {/* Central Label */}
-                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none mt-16">
-                                        <span className="text-2xl font-bold text-white tracking-tight">Rio 3</span>
-                                    </div>
-                                </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* Mobile: Simple merge indicator */}
                                 <div className="md:hidden mt-6 flex flex-col items-center gap-4">
