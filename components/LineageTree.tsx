@@ -19,6 +19,38 @@ interface NodeLayout {
   opacity: number;
 }
 
+// Helper to find intersection point between a line (from center to target) and a rectangle
+// defined by center, width, height
+function getRectIntersection(
+  center: { x: number; y: number },
+  width: number,
+  height: number,
+  target: { x: number; y: number }
+) {
+  const dx = target.x - center.x;
+  const dy = target.y - center.y;
+
+  if (dx === 0 && dy === 0) return center;
+
+  const halfW = width / 2;
+  const halfH = height / 2;
+
+  // Calculate t for x collision: center.x + dx * t = center.x +/- halfW
+  // t = (+/- halfW) / dx
+  const tx = dx !== 0 ? Math.abs(halfW / dx) : Infinity;
+
+  // Calculate t for y collision
+  const ty = dy !== 0 ? Math.abs(halfH / dy) : Infinity;
+
+  const t = Math.min(tx, ty);
+
+  // The intersection point
+  return {
+    x: center.x + dx * t,
+    y: center.y + dy * t
+  };
+}
+
 export const LineageTree: React.FC<LineageTreeProps> = ({
   onSelectModel,
   nodes,
@@ -237,23 +269,74 @@ export const LineageTree: React.FC<LineageTreeProps> = ({
                   // Logic depends on connection type
                   // TYPE 1: Source (Center) -> Expert (Ring)
                   if (parentId === 'rio-2.5-omni-source') {
-                    const startX = parentLayout.left + parentLayout.width / 2;
-                    const startY = parentLayout.top + parentLayout.height / 2;
-                    const endX = nodeLayout.left + nodeLayout.width / 2;
-                    const endY = nodeLayout.top + nodeLayout.height / 2;
-                    // Straight line is fine for radial burst, or slight arc?
-                    // Straight line works well for "burst".
-                    path = `M ${startX} ${startY} L ${endX} ${endY}`;
+                    const sourceCx = parentLayout.left + parentLayout.width / 2;
+                    const sourceCy = parentLayout.top + parentLayout.height / 2;
+                    const targetCx = nodeLayout.left + nodeLayout.width / 2;
+                    const targetCy = nodeLayout.top + nodeLayout.height / 2;
+
+                    // Calculate start point (intersection with Source rect)
+                    const start = getRectIntersection(
+                      { x: sourceCx, y: sourceCy },
+                      parentLayout.width,
+                      parentLayout.height,
+                      { x: targetCx, y: targetCy }
+                    );
+
+                    // Calculate end point (intersection with Expert rect)
+                    const end = getRectIntersection(
+                      { x: targetCx, y: targetCy },
+                      nodeLayout.width,
+                      nodeLayout.height,
+                      { x: sourceCx, y: sourceCy }
+                    );
+
+                    path = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
                   }
                   // TYPE 2: Expert (Ring) -> Sink (Bottom)
                   else {
-                    const startX = parentLayout.left + parentLayout.width / 2;
-                    const startY = parentLayout.top + parentLayout.height / 2;
-                    const endX = nodeLayout.left + nodeLayout.width / 2;
-                    const endY = nodeLayout.top + 10; // slightly inside top of target
+                    const expertCx = parentLayout.left + parentLayout.width / 2;
+                    const expertCy = parentLayout.top + parentLayout.height / 2;
+                    const sinkCx = nodeLayout.left + nodeLayout.width / 2;
+                    const sinkCy = nodeLayout.top + nodeLayout.height / 2;
 
-                    const midY = (startY + endY) / 2;
-                    path = `M ${startX} ${startY} Q ${startX} ${midY}, ${endX} ${endY}`;
+                    // The original logic used:
+                    // const startX = expertCx;
+                    // const startY = expertCy;
+                    // const endX = sinkCx;
+                    // const endY = nodeLayout.top + 10;
+                    // const midY = (startY + endY) / 2;
+                    // path = `M ${startX} ${startY} Q ${startX} ${midY}, ${endX} ${endY}`;
+
+                    // New logic with clipping:
+                    // 1. The curve leaves Expert vertically downwards.
+                    //    Start point should be bottom-center of Expert.
+                    const start = {
+                      x: expertCx,
+                      y: expertCy + parentLayout.height / 2
+                    };
+
+                    // 2. The curve approaches Sink. The control point is (start.x, midY).
+                    //    Tangent at endpoint is roughly distinct from vertical.
+                    //    We can treat the "incoming ray" as coming from the Control Point.
+                    //    Let's calculate approximate End point by intersecting Sink box 
+                    //    with the line from SinkCenter to ControlPoint.
+
+                    // Rough geometric control point Y used in previous logic was avg(start, end).
+                    // Let's preserve the shape but clip the end.
+
+                    const originalTargetY = nodeLayout.top + nodeLayout.height / 2; // Aiming for center visually for the curve calculation
+                    const midY = (expertCy + originalTargetY) / 2;
+                    const controlPoint = { x: expertCx, y: midY };
+
+                    // Intersect Sink Rect with ray from SinkCenter to ControlPoint
+                    const end = getRectIntersection(
+                      { x: sinkCx, y: sinkCy },
+                      nodeLayout.width,
+                      nodeLayout.height,
+                      controlPoint
+                    );
+
+                    path = `M ${start.x} ${start.y} Q ${controlPoint.x} ${controlPoint.y}, ${end.x} ${end.y}`;
                   }
 
                 } else {
