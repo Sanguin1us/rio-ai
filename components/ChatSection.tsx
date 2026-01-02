@@ -14,6 +14,10 @@ import {
   ChevronRight,
   Square,
   Brain,
+  Paperclip,
+  FileText,
+  ImageIcon,
+  XCircle,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Highlight, Language, themes } from 'prism-react-renderer';
@@ -24,7 +28,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { AnimateOnScroll } from './AnimateOnScroll';
 import { ThinkingAnimation } from './ThinkingAnimation';
-import { ChatMessage, useRioChat } from '../hooks/useRioChat';
+import { ChatMessage, useRioChat, Attachment } from '../hooks/useRioChat';
 import { normalizeMathDelimiters } from '../lib/markdown';
 import { FeedbackModal, FeedbackType, FeedbackData } from './FeedbackModal';
 
@@ -214,6 +218,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
     }
   }, [message.content]);
 
+  const attachments = message.attachments || [];
+
   const actionButtonClass =
     'inline-flex h-8 w-8 items-center justify-center text-slate-400 transition hover:text-rio-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rio-primary/50 disabled:opacity-50';
 
@@ -223,6 +229,27 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         className={`group flex max-w-[80%] min-w-0 flex-col gap-1 ${isUser ? 'items-end text-left' : 'items-start text-left'
           }`}
       >
+        {attachments.length > 0 && (
+          <div className={`flex flex-wrap gap-2 mb-1 ${isUser ? 'justify-end' : 'justify-start'}`}>
+            {attachments.map((att) => (
+              <div key={att.id} className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                {att.type === 'image' ? (
+                  <img src={att.dataUrl} alt={att.name} className="h-48 w-auto object-cover max-w-[200px]" />
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-50">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="truncate text-xs font-medium text-slate-700 max-w-[150px]" title={att.name}>{att.name}</span>
+                      <span className="text-[10px] text-slate-500 uppercase">PDF</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         <div
           className={`relative min-w-0 max-w-full overflow-hidden rounded-2xl px-4 py-3 text-[14px] leading-relaxed shadow-sm transition ${isUser ? 'bg-rio-primary/10 text-rio-primary' : 'bg-slate-100 text-prose'
             }`}
@@ -545,6 +572,50 @@ export const ChatSection = () => {
     type: 'positive',
   });
 
+  const [selectedFiles, setSelectedFiles] = useState<Attachment[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newAttachments: Attachment[] = [];
+      const files = Array.from(e.target.files);
+
+      for (const file of files) {
+        // Create a promise to read the file
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const type = file.type.startsWith('image/') ? 'image' : 'file';
+
+        newAttachments.push({
+          id: crypto.randomUUID(),
+          type,
+          mimeType: file.type,
+          name: file.name,
+          dataUrl: base64
+        });
+      }
+
+      setSelectedFiles(prev => [...prev, ...newAttachments]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeFile = (id: string) => {
+    setSelectedFiles(prev => prev.filter(f => f.id !== id));
+  };
+
+  // Clear files when switching models, just to be safe/clean
+  useEffect(() => {
+    if (selectedModelId !== 'rio-3.0-preview') {
+      setSelectedFiles([]);
+    }
+  }, [selectedModelId]);
+
   useEffect(() => {
     if (messages.length === 0 && !isLoading) {
       return;
@@ -572,14 +643,15 @@ export const ChatSection = () => {
 
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && selectedFiles.length === 0) || isLoading) return;
 
     if (editingState) {
       // Create a new branch with the edited content
       editAndResubmit(editingState.messageId, input);
       setEditingState(null);
     } else {
-      handleSubmit();
+      handleSubmit(undefined, selectedFiles);
+      setSelectedFiles([]);
     }
   };
 
@@ -647,6 +719,38 @@ export const ChatSection = () => {
                     <X className="h-3.5 w-3.5" />
                     Cancelar
                   </button>
+                </div>
+              )}
+
+              {selectedFiles.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {selectedFiles.map((file) => (
+                    <div key={file.id} className="relative group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm pr-8">
+                      {file.type === 'image' ? (
+                        <div className="flex items-center gap-2 p-1">
+                          <img src={file.dataUrl} alt={file.name} className="h-10 w-10 rounded object-cover" />
+                          <span className="text-xs font-medium text-slate-700 truncate max-w-[120px]">{file.name}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 p-2">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                            <FileText className="h-4 w-4" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-slate-700 truncate max-w-[120px]">{file.name}</span>
+                            <span className="text-[10px] text-slate-500 uppercase">PDF</span>
+                          </div>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeFile(file.id)}
+                        className="absolute top-1 right-1 p-1 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-red-500 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -720,6 +824,26 @@ export const ChatSection = () => {
                 </div>
 
                 <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  multiple
+                  accept="image/png,image/jpeg,image/webp,application/pdf"
+                />
+
+                {selectedModelId === 'rio-3.0-preview' && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                    title="Adicionar imagem ou PDF"
+                  >
+                    <Paperclip className="h-5 w-5" />
+                  </button>
+                )}
+
+                <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -748,7 +872,7 @@ export const ChatSection = () => {
                 ) : (
                   <button
                     type="submit"
-                    disabled={!input.trim()}
+                    disabled={!input.trim() && selectedFiles.length === 0}
                     className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-500 disabled:pointer-events-none disabled:opacity-50 ${selectedModelId === 'rio-2.5-fast'
                       ? 'bg-amber-500 text-white hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-500/25'
                       : selectedModelId === 'rio-3.0-preview'

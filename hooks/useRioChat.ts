@@ -10,7 +10,7 @@ import {
 } from '../utils/messageTree';
 
 // Re-export types for consumers
-export type { ChatRole, ChatMessage } from '../utils/messageTree';
+export type { ChatRole, ChatMessage, Attachment } from '../utils/messageTree';
 
 /**
  * Options for configuring the useRioChat hook.
@@ -145,12 +145,15 @@ export function useRioChat(options: UseRioChatOptions = {}) {
 
   // Submit a new message
   const handleSubmit = useCallback(
-    async (event?: React.FormEvent<HTMLFormElement>) => {
+    async (event?: React.FormEvent<HTMLFormElement>, attachments: import('../utils/messageTree').Attachment[] = []) => {
       if (event) {
         event.preventDefault();
       }
 
-      if (!input.trim() || isLoadingRef.current) return;
+      const hasContent = input.trim().length > 0;
+      const hasAttachments = attachments && attachments.length > 0;
+
+      if ((!hasContent && !hasAttachments) || isLoadingRef.current) return;
 
       const userContent = input;
       setInput('');
@@ -166,7 +169,7 @@ export function useRioChat(options: UseRioChatOptions = {}) {
             ? (prevTree.selectedPath[prevTree.selectedPath.length - 1] ?? null)
             : null;
 
-        const { newTree, newNodeId } = addNode(prevTree, 'user', userContent, parentId);
+        const { newTree, newNodeId } = addNode(prevTree, 'user', userContent, parentId, attachments);
         _userNodeId = newNodeId;
         currentTree = {
           ...newTree,
@@ -178,23 +181,84 @@ export function useRioChat(options: UseRioChatOptions = {}) {
       // Wait for state to settle
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // Prepare messages for API
-      const pathMessages = tree.selectedPath
-        .map((id) => {
-          const node = tree.nodes.get(id);
-          return node ? { role: node.role, content: node.content } : null;
-        })
-        .filter(Boolean) as Array<{ role: string; content: string }>;
+      // Rebuild history with attachments
+      const historyPayload = tree.selectedPath.map(id => {
+        const node = tree.nodes.get(id);
+        if (!node) return null;
 
-      const historySlice =
+        const contentBlock: any[] = [];
+
+        // Add text content if present
+        if (node.content) {
+          contentBlock.push({ type: 'text', text: node.content });
+        }
+
+        // Add attachments if present
+        if (node.attachments && node.attachments.length > 0) {
+          node.attachments.forEach(att => {
+            if (att.type === 'image') {
+              contentBlock.push({
+                type: 'image_url',
+                image_url: { url: att.dataUrl }
+              });
+            } else if (att.type === 'file') {
+              contentBlock.push({
+                type: 'file',
+                file: {
+                  filename: att.name,
+                  file_data: att.dataUrl
+                }
+              });
+            }
+          });
+        }
+
+        // If simpler text-only message (and no attachments), send as string to be safe/compatible
+        // or use array format if we want consistency. Using array format for Rio 3 / consistency.
+        if (node.attachments && node.attachments.length > 0) {
+          return { role: node.role, content: contentBlock };
+        }
+
+        return { role: node.role, content: node.content };
+      }).filter(Boolean);
+
+      // We need to apply history limit to this payload
+      // Note: historyPayload is derived from the *current* tree state (before update),
+      // so it contains previous messages but NOT the new one we just added via setTree.
+      const payloadHistorySlice =
         typeof historyLimit === 'number' && historyLimit >= 0
-          ? pathMessages.slice(-historyLimit)
-          : pathMessages;
+          ? historyPayload.slice(-historyLimit)
+          : historyPayload;
+
+      // Construct the current message payload object
+      const currentUserMessagePayload: any = { role: 'user', content: userContent };
+
+      if ((attachments && attachments.length > 0) || (userContent && attachments && attachments.length > 0)) {
+        const contentBlock: any[] = [];
+
+        // Add text if present
+        if (userContent) {
+          contentBlock.push({ type: 'text', text: userContent });
+        }
+
+        // Add attachments
+        if (attachments && attachments.length > 0) {
+          attachments.forEach(att => {
+            if (att.type === 'image') {
+              contentBlock.push({ type: 'image_url', image_url: { url: att.dataUrl } });
+            } else if (att.type === 'file') {
+              contentBlock.push({ type: 'file', file: { filename: att.name, file_data: att.dataUrl } });
+            }
+          });
+        }
+
+        currentUserMessagePayload.content = contentBlock;
+      }
 
       const payloadMessages = [
         ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
-        ...historySlice,
-        { role: 'user', content: userContent },
+        ...payloadHistorySlice,
+        currentUserMessagePayload
       ];
 
       try {

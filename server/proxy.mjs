@@ -29,7 +29,7 @@ app.use(
     origin: process.env.RIO_ALLOWED_ORIGINS?.split(',') ?? true,
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 app.post('/api/chat', async (req, res) => {
   if (!apiKey) {

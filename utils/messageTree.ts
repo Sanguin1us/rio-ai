@@ -16,6 +16,17 @@
 export type ChatRole = 'user' | 'assistant';
 
 /**
+ * An attachment file (image or PDF).
+ */
+export interface Attachment {
+    id: string;
+    type: 'image' | 'file';
+    mimeType: string;
+    name: string;
+    dataUrl: string;
+}
+
+/**
  * Internal tree node for storing conversation branches.
  */
 export interface TreeNode {
@@ -29,6 +40,8 @@ export interface TreeNode {
     parentId: string | null;
     /** IDs of child nodes */
     childrenIds: string[];
+    /** Optional attachments */
+    attachments?: Attachment[];
 }
 
 /**
@@ -46,6 +59,8 @@ export interface ChatMessage {
     siblingIndex: number;
     /** Total number of sibling messages at this position */
     siblingCount: number;
+    /** Optional attachments included in the message */
+    attachments?: Attachment[];
 }
 
 /**
@@ -130,6 +145,7 @@ export function computeFlatMessages(tree: MessageTree): ChatMessage[] {
             content: node.content,
             siblingIndex: index,
             siblingCount: count,
+            attachments: node.attachments,
         };
     });
 }
@@ -156,7 +172,8 @@ export function addNode(
     tree: MessageTree,
     role: ChatRole,
     content: string,
-    parentId: string | null
+    parentId: string | null,
+    attachments?: Attachment[]
 ): AddNodeResult {
     const newId = generateId();
     const newNode: TreeNode = {
@@ -165,6 +182,7 @@ export function addNode(
         content,
         parentId,
         childrenIds: [],
+        attachments,
     };
 
     const newNodes = new Map(tree.nodes);
@@ -262,18 +280,24 @@ export function recomputePathFromNode(tree: MessageTree, nodeId: string): string
  * @param tree - The message tree
  * @param nodeId - ID of the node to update
  * @param content - New content for the node
+ * @param attachments - Optional new attachments (replaces existing if provided)
  * @returns Updated message tree
  */
 export function updateNodeContent(
     tree: MessageTree,
     nodeId: string,
-    content: string
+    content: string,
+    attachments?: Attachment[]
 ): MessageTree {
     const node = tree.nodes.get(nodeId);
     if (!node) return tree;
 
     const newNodes = new Map(tree.nodes);
-    newNodes.set(nodeId, { ...node, content });
+    newNodes.set(nodeId, {
+        ...node,
+        content,
+        attachments: attachments ?? node.attachments,
+    });
 
     return { ...tree, nodes: newNodes };
 }
