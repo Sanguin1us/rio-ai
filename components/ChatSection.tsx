@@ -54,6 +54,11 @@ interface ChatBubbleProps {
   onFeedback?: (type: FeedbackType, message: ChatMessage) => void;
   onNavigate?: (direction: -1 | 1) => void;
   disableActions?: boolean;
+  isEditing?: boolean;
+  editContent?: string;
+  onEditContentChange?: (content: string) => void;
+  onSaveEdit?: () => void;
+  onCancelEdit?: () => void;
 }
 
 const CodeBlock: React.FC<{
@@ -189,10 +194,16 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   onFeedback,
   onNavigate,
   disableActions,
+  isEditing,
+  editContent,
+  onEditContentChange,
+  onSaveEdit,
+  onCancelEdit,
 }) => {
   const isUser = message.role === 'user';
   const [copiedBubble, setCopiedBubble] = useState(false);
   const bubbleCopyTimeoutRef = useRef<number | null>(null);
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const markdownContent = normalizeMathDelimiters(message.content);
 
   useEffect(
@@ -203,6 +214,15 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
     },
     []
   );
+
+  // Focus and resize textarea when entering edit mode
+  useEffect(() => {
+    if (isEditing && editTextareaRef.current) {
+      editTextareaRef.current.focus();
+      editTextareaRef.current.style.height = 'auto';
+      editTextareaRef.current.style.height = `${Math.min(editTextareaRef.current.scrollHeight, 200)}px`;
+    }
+  }, [isEditing]);
 
   const handleCopyMessage = useCallback(async () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return;
@@ -222,6 +242,63 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 
   const actionButtonClass =
     'inline-flex h-8 w-8 items-center justify-center text-slate-400 transition hover:text-rio-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rio-primary/50 disabled:opacity-50';
+
+  // Inline editing UI for user messages
+  if (isEditing && isUser) {
+    return (
+      <div className="flex justify-end w-full">
+        <div className="w-full max-w-[90%] flex flex-col gap-2">
+          <div className="rounded-2xl border-2 border-rio-primary/40 bg-white p-3 shadow-sm">
+            <textarea
+              ref={editTextareaRef}
+              value={editContent}
+              onChange={(e) => {
+                onEditContentChange?.(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (editContent?.trim()) {
+                    onSaveEdit?.();
+                  }
+                }
+                if (e.key === 'Escape') {
+                  onCancelEdit?.();
+                }
+              }}
+              className="w-full border-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 resize-none max-h-[200px] overflow-y-auto"
+              style={{ minHeight: '40px' }}
+              rows={1}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500">
+              Editar a mensagem ramificará o chat.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onCancelEdit}
+                className="px-4 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={onSaveEdit}
+                disabled={!editContent?.trim()}
+                className="px-4 py-1.5 text-sm font-medium text-white bg-rio-primary hover:bg-rio-primary/90 rounded-lg transition disabled:opacity-50 disabled:pointer-events-none"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -630,29 +707,30 @@ export const ChatSection = () => {
         messageId,
         originalContent: content,
       });
-      setInput(content);
     },
-    [isLoading, setInput]
+    [isLoading]
   );
 
   const handleCancelEdit = useCallback(() => {
-    if (!editingState) return;
     setEditingState(null);
-    setInput('');
-  }, [editingState, setInput]);
+  }, []);
+
+  const handleSaveEdit = useCallback(() => {
+    if (!editingState) return;
+    editAndResubmit(editingState.messageId, editingState.originalContent);
+    setEditingState(null);
+  }, [editingState, editAndResubmit]);
+
+  const handleEditContentChange = useCallback((content: string) => {
+    setEditingState(prev => prev ? { ...prev, originalContent: content } : null);
+  }, []);
 
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if ((!input.trim() && selectedFiles.length === 0) || isLoading) return;
+    if ((!input.trim() && selectedFiles.length === 0) || isLoading || editingState) return;
 
-    if (editingState) {
-      // Create a new branch with the edited content
-      editAndResubmit(editingState.messageId, input);
-      setEditingState(null);
-    } else {
-      handleSubmit(undefined, selectedFiles);
-      setSelectedFiles([]);
-    }
+    handleSubmit(undefined, selectedFiles);
+    setSelectedFiles([]);
   };
 
   const handleFeedback = (type: FeedbackType, message: ChatMessage) => {
@@ -688,7 +766,7 @@ export const ChatSection = () => {
                 <ChatBubble
                   key={msg.id}
                   message={msg}
-                  disableActions={isLoading}
+                  disableActions={isLoading || !!editingState}
                   onRegenerate={
                     msg.role === 'user'
                       ? () => regenerate(index)
@@ -701,26 +779,18 @@ export const ChatSection = () => {
                   }
                   onNavigate={(direction) => navigateMessage(msg.id, direction)}
                   onFeedback={handleFeedback}
+                  isEditing={editingState?.messageId === msg.id}
+                  editContent={editingState?.messageId === msg.id ? editingState.originalContent : undefined}
+                  onEditContentChange={handleEditContentChange}
+                  onSaveEdit={handleSaveEdit}
+                  onCancelEdit={handleCancelEdit}
                 />
               ))}
               {isLoading && <ThinkingAnimation modelName={currentModelData.name} />}
               <div ref={chatEndRef} />
             </div>
             <div className="border-t border-slate-200 bg-white p-4">
-              {editingState && (
-                <div className="mb-3 flex items-center justify-between rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-600">
-                  <span>Voc&ecirc; est&aacute; editando uma mensagem enviada.</span>
 
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:bg-slate-200"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    Cancelar
-                  </button>
-                </div>
-              )}
 
               {selectedFiles.length > 0 && (
                 <div className="mb-3 flex flex-wrap gap-2">
