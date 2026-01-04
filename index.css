@@ -23,3 +23,52 @@
 
   --animate-slide-in: slide-in 0.5s ease-out forwards;
 }
+
+/* Custom chat scrollbar - hidden by default, shows on user scroll */
+.chat-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+.chat-scroll-container.show-scrollbar {
+  scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+}
+
+.chat-scroll-container.show-scrollbar:hover {
+  scrollbar-color: rgba(100, 116, 139, 0.7) transparent;
+}
+
+/* WebKit scrollbar (Chrome, Safari, Edge) */
+.chat-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+  margin: 8px 0;
+}
+
+.chat-scroll-container::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  transition: background 0.3s ease;
+}
+
+/* Show scrollbar thumb only when .show-scrollbar is active */
+.chat-scroll-container.show-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+.chat-scroll-container.show-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-rio-primary);
+}
+
+.chat-scroll-container::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.chat-scroll-container::-webkit-scrollbar-button {
+  display: none;
+}

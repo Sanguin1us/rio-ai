@@ -630,12 +630,16 @@ export const ChatSection = () => {
     model: currentModel,
   });
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const [editingState, setEditingState] = useState<EditingState | null>(null);
   const [feedbackState, setFeedbackState] = useState<FeedbackState>({
     isOpen: false,
     type: 'positive',
   });
   const [isClearing, setIsClearing] = useState(false);
+  const [showScrollbar, setShowScrollbar] = useState(false);
+  const isAutoScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef<number | null>(null);
 
   const handleClearChat = useCallback(() => {
     if (messages.length === 0) return;
@@ -736,8 +740,37 @@ export const ChatSection = () => {
   const prevIsLoadingRef = useRef(isLoading);
   const prevMessageCountRef = useRef(messages.length);
 
+  // Handle user scroll detection
   useEffect(() => {
-    const chatContainer = chatEndRef.current?.parentElement;
+    const chatContainer = chatContainerRef.current;
+    if (!chatContainer) return;
+
+    const handleScroll = () => {
+      // Only show scrollbar if this is a user-initiated scroll
+      if (!isAutoScrollingRef.current) {
+        setShowScrollbar(true);
+        // Clear any existing timeout
+        if (scrollTimeoutRef.current) {
+          window.clearTimeout(scrollTimeoutRef.current);
+        }
+        // Hide scrollbar after user stops scrolling
+        scrollTimeoutRef.current = window.setTimeout(() => {
+          setShowScrollbar(false);
+        }, 1500);
+      }
+    };
+
+    chatContainer.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      chatContainer.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const chatContainer = chatContainerRef.current;
     if (!chatContainer) return;
 
     const wasLoading = prevIsLoadingRef.current;
@@ -767,10 +800,15 @@ export const ChatSection = () => {
 
       if (lastUserMessageEl) {
         const messageTop = lastUserMessageEl.offsetTop;
+        isAutoScrollingRef.current = true;
         chatContainer.scrollTo({
           top: messageTop - 16, // 16px padding from top
           behavior: 'smooth'
         });
+        // Reset auto-scroll flag after scroll completes
+        setTimeout(() => {
+          isAutoScrollingRef.current = false;
+        }, 500);
       }
       return;
     }
@@ -782,10 +820,14 @@ export const ChatSection = () => {
 
       if (lastUserMessageEl) {
         const messageTop = lastUserMessageEl.offsetTop;
+        isAutoScrollingRef.current = true;
         chatContainer.scrollTo({
           top: messageTop - 16,
           behavior: 'smooth'
         });
+        setTimeout(() => {
+          isAutoScrollingRef.current = false;
+        }, 500);
       }
       return;
     }
@@ -799,10 +841,14 @@ export const ChatSection = () => {
 
     // For other cases (like message navigation), scroll to bottom smoothly
     if (messageCountChanged && messages.length > 0) {
+      isAutoScrollingRef.current = true;
       chatContainer.scrollTo({
         top: chatContainer.scrollHeight,
         behavior: 'smooth'
       });
+      setTimeout(() => {
+        isAutoScrollingRef.current = false;
+      }, 500);
     }
   }, [messages, isLoading]);
 
@@ -886,7 +932,8 @@ export const ChatSection = () => {
             )}
 
             <div
-              className={`flex-1 space-y-6 overflow-y-auto overflow-x-hidden p-6 transition-all duration-300 ease-out ${isClearing ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100 blur-0'
+              ref={chatContainerRef}
+              className={`flex-1 space-y-6 overflow-y-auto overflow-x-hidden p-6 transition-all duration-300 ease-out chat-scroll-container ${showScrollbar ? 'show-scrollbar' : ''} ${isClearing ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100 blur-0'
                 }`}
             >
               {messages.map((msg, index) => (
