@@ -17,6 +17,7 @@ import {
   Brain,
   Paperclip,
   FileText,
+  Loader2,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Highlight, Language, themes } from 'prism-react-renderer';
@@ -637,10 +638,12 @@ export const ChatSection = () => {
   });
 
   const [selectedFiles, setSelectedFiles] = useState<Attachment[]>([]);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      setIsUploadingFiles(true);
       const newAttachments: Attachment[] = [];
       const files = Array.from(e.target.files);
 
@@ -665,6 +668,7 @@ export const ChatSection = () => {
       }
 
       setSelectedFiles(prev => [...prev, ...newAttachments]);
+      setIsUploadingFiles(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -775,7 +779,7 @@ export const ChatSection = () => {
           </p>
         </AnimateOnScroll>
         <AnimateOnScroll delay={200} className="mt-12 max-w-3xl mx-auto">
-          <div className="flex h-[500px] flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex min-h-[400px] max-h-[70vh] h-[500px] flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
             <div className="flex-1 space-y-6 overflow-y-auto overflow-x-hidden p-6">
               {messages.map((msg, index) => (
                 <ChatBubble
@@ -859,11 +863,16 @@ export const ChatSection = () => {
                 {selectedModelId === 'rio-3.0-preview' && (
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-                    title="Adicionar imagem ou PDF"
+                    onClick={() => !isUploadingFiles && fileInputRef.current?.click()}
+                    disabled={isUploadingFiles}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={isUploadingFiles ? 'Carregando...' : 'Adicionar imagem ou PDF'}
                   >
-                    <Paperclip className="h-5 w-5" />
+                    {isUploadingFiles ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Paperclip className="h-5 w-5" />
+                    )}
                   </button>
                 )}
 
@@ -896,8 +905,18 @@ export const ChatSection = () => {
                   <button
                     type="button"
                     onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setIsModelMenuOpen(false);
+                      } else if (e.key === 'ArrowDown' && !isModelMenuOpen) {
+                        e.preventDefault();
+                        setIsModelMenuOpen(true);
+                      }
+                    }}
                     className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-slate-600 transition hover:bg-slate-100"
                     title="Mudar de modelo"
+                    aria-haspopup="listbox"
+                    aria-expanded={isModelMenuOpen}
                   >
                     <span className="font-medium">{currentModelData.name}</span>
                     <ChevronDown className={`h-4 w-4 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`} />
@@ -909,7 +928,26 @@ export const ChatSection = () => {
                         className="fixed inset-0 z-10"
                         onClick={() => setIsModelMenuOpen(false)}
                       />
-                      <div className="absolute bottom-full right-0 z-20 mb-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      <div
+                        className="absolute bottom-full right-0 z-20 mb-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200"
+                        role="listbox"
+                        onKeyDown={(e) => {
+                          const currentIndex = chatModels.findIndex(m => m.id === selectedModelId);
+                          if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            const nextIndex = (currentIndex + 1) % chatModels.length;
+                            setSelectedModelId(chatModels[nextIndex].id);
+                          } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            const prevIndex = (currentIndex - 1 + chatModels.length) % chatModels.length;
+                            setSelectedModelId(chatModels[prevIndex].id);
+                          } else if (e.key === 'Escape' || e.key === 'Enter') {
+                            setIsModelMenuOpen(false);
+                          }
+                        }}
+                        tabIndex={0}
+                        ref={(el) => el?.focus()}
+                      >
                         {chatModels.map((m) => (
                           <button
                             key={m.id}
@@ -920,6 +958,8 @@ export const ChatSection = () => {
                             }}
                             className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-slate-50 ${selectedModelId === m.id ? 'bg-slate-50' : ''
                               }`}
+                            role="option"
+                            aria-selected={selectedModelId === m.id}
                           >
                             <div className="flex flex-col">
                               <span className="text-sm font-semibold text-slate-800">{m.name}</span>
