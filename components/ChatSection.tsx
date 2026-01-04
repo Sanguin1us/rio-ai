@@ -246,7 +246,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   // Inline editing UI for user messages
   if (isEditing && isUser) {
     return (
-      <div className="flex justify-end w-full">
+      <div data-message-id={message.id} className="flex justify-end w-full">
         <div className="w-full max-w-[90%] flex flex-col gap-2">
           <div className="rounded-2xl border-2 border-rio-primary/40 bg-white p-3 shadow-sm">
             <textarea
@@ -301,7 +301,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div data-message-id={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`group flex max-w-[80%] min-w-0 flex-col gap-1 ${isUser ? 'items-end text-left' : 'items-start text-left'
           }`}
@@ -697,7 +697,29 @@ export const ChatSection = () => {
     if (messages.length === 0 && !isLoading) {
       return;
     }
-    chatEndRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+
+    const chatContainer = chatEndRef.current?.parentElement;
+    if (!chatContainer) return;
+
+    // When loading (awaiting response), scroll so the last user message is at the top
+    // This creates space below for the AI response, like Claude's UX
+    if (isLoading) {
+      const lastUserMessageIndex = messages.findLastIndex(m => m.role === 'user');
+      if (lastUserMessageIndex !== -1) {
+        const messageElements = chatContainer.querySelectorAll('[data-message-id]');
+        const lastUserMessageEl = messageElements?.[lastUserMessageIndex] as HTMLElement | undefined;
+
+        if (lastUserMessageEl) {
+          // Calculate the scroll position to put the message at the top of the container
+          const messageTop = lastUserMessageEl.offsetTop;
+          chatContainer.scrollTop = messageTop - 16; // 16px padding from top
+          return;
+        }
+      }
+    }
+
+    // Default: scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
   }, [messages, isLoading]);
 
   const handleEditMessage = useCallback(
@@ -787,7 +809,8 @@ export const ChatSection = () => {
                 />
               ))}
               {isLoading && <ThinkingAnimation modelName={currentModelData.name} />}
-              <div ref={chatEndRef} />
+              {/* Spacer to allow scrolling the last message to the top during loading */}
+              <div ref={chatEndRef} className={isLoading ? 'min-h-[300px]' : ''} />
             </div>
             <div className="border-t border-slate-200 bg-white p-4">
 
