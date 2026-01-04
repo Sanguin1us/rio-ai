@@ -639,38 +639,74 @@ export const ChatSection = () => {
 
   const [selectedFiles, setSelectedFiles] = useState<Attachment[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Process files (shared between input and drag-drop)
+  const processFiles = async (files: File[]) => {
+    if (selectedModelId !== 'rio-3.0-preview') return;
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
+    const validFiles = files.filter(f => validTypes.includes(f.type));
+
+    if (validFiles.length === 0) return;
+
+    setIsUploadingFiles(true);
+    const newAttachments: Attachment[] = [];
+
+    for (const file of validFiles) {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const type = file.type.startsWith('image/') ? 'image' : 'file';
+
+      newAttachments.push({
+        id: crypto.randomUUID(),
+        type,
+        mimeType: file.type,
+        name: file.name,
+        dataUrl: base64
+      });
+    }
+
+    setSelectedFiles(prev => [...prev, ...newAttachments]);
+    setIsUploadingFiles(false);
+  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setIsUploadingFiles(true);
-      const newAttachments: Attachment[] = [];
-      const files = Array.from(e.target.files);
-
-      for (const file of files) {
-        // Create a promise to read the file
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        const type = file.type.startsWith('image/') ? 'image' : 'file';
-
-        newAttachments.push({
-          id: crypto.randomUUID(),
-          type,
-          mimeType: file.type,
-          name: file.name,
-          dataUrl: base64
-        });
-      }
-
-      setSelectedFiles(prev => [...prev, ...newAttachments]);
-      setIsUploadingFiles(false);
+      await processFiles(Array.from(e.target.files));
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (selectedModelId === 'rio-3.0-preview') {
+      setIsDraggingOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    if (selectedModelId !== 'rio-3.0-preview') return;
+
+    const files = Array.from(e.dataTransfer.files);
+    await processFiles(files);
   };
 
   const removeFile = (id: string) => {
@@ -779,7 +815,24 @@ export const ChatSection = () => {
           </p>
         </AnimateOnScroll>
         <AnimateOnScroll delay={200} className="mt-12 max-w-3xl mx-auto">
-          <div className="flex min-h-[400px] max-h-[70vh] h-[500px] flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div
+            className={`relative flex min-h-[400px] max-h-[70vh] h-[500px] flex-col rounded-lg border bg-white shadow-sm transition-all duration-300 ${isDraggingOver && selectedModelId === 'rio-3.0-preview'
+              ? 'border-indigo-400 ring-4 ring-indigo-500/20'
+              : 'border-slate-200'
+              }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {/* Drag overlay */}
+            {isDraggingOver && selectedModelId === 'rio-3.0-preview' && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-indigo-50/90 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-2 text-indigo-600">
+                  <Paperclip className="h-8 w-8" />
+                  <span className="text-sm font-medium">Solte o arquivo aqui</span>
+                </div>
+              </div>
+            )}
             <div className="flex-1 space-y-6 overflow-y-auto overflow-x-hidden p-6">
               {messages.map((msg, index) => (
                 <ChatBubble
@@ -844,7 +897,7 @@ export const ChatSection = () => {
 
               <form
                 onSubmit={handleFormSubmit}
-                className={`group relative flex items-center gap-2 rounded-2xl border bg-white p-1.5 pl-3 shadow-sm transition-all duration-500 ${selectedModelId === 'rio-2.5-fast'
+                className={`group relative flex items-center gap-2 rounded-2xl border bg-white p-1.5 pl-3 shadow-sm transition-all duration-300 ${selectedModelId === 'rio-2.5-fast'
                   ? 'border-amber-200 focus-within:border-amber-400 focus-within:ring-4 focus-within:ring-amber-500/10'
                   : selectedModelId === 'rio-3.0-preview'
                     ? 'border-indigo-200 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-500/10'
