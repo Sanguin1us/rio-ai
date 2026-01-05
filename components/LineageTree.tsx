@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { LineageNode } from './lineage-data';
 import type { Model } from '../types/index';
+import { ChevronRight, ExternalLink } from 'lucide-react';
 
 interface LineageTreeProps {
   onSelectModel: (model: Model) => void;
@@ -428,21 +429,26 @@ export const LineageTree: React.FC<LineageTreeProps> = ({
         if (!layout) return null;
 
         const isActive = hoveredNode === node.id;
-        const isOmni = node.id === 'rio-omni' || node.id === 'rio-3.0-preview';
-        const isTarget = node.id === 'rio-3.0-preview'; // Special styling for the center piece
+        const hasDetailPage = node.hasDetailPage;
+        // External URLs (Qwen models) and nodes without detail pages should be unhighlighted
+        // For 3D ring, don't treat nodes as info-only (they have their own opacity system)
+        const isInfoOnly = variant !== '3d-ring' && !hasDetailPage;
 
         // Computed styles based on layout + interaction
         const finalScale = layout.scale * (isActive ? 1.05 : 1);
         const finalZIndex = layout.zIndex + (isActive ? 100 : 0);
 
+        // Opacity: info-only nodes are slightly faded unless hovered (only for tree variant)
+        const finalOpacity = isInfoOnly && !isActive
+          ? layout.opacity * 0.7
+          : layout.opacity;
+
         return (
           <div
             key={node.id}
-            className={`absolute flex items-center justify-center p-3 sm:p-4 rounded-xl shadow-sm border transition-all duration-500 cursor-pointer
-              ${isActive ? 'border-rio-primary shadow-lg ring-2 ring-rio-primary/20' : 'border-slate-200 hover:border-rio-primary/50'}
-              ${!isTarget && !isOmni ? 'bg-white/90' : ''}
-              ${isTarget ? 'bg-gradient-to-br from-slate-900 to-rio-primary text-white border-transparent bg-[length:200%_200%] animate-gradient-xy' : ''}
-              ${!isTarget && isOmni ? 'bg-slate-800 text-white border-none' : ''} 
+            className={`absolute flex items-center justify-center p-3 sm:p-4 rounded-xl shadow-sm border transition-all duration-500 bg-white/90
+              ${hasDetailPage || node.externalUrl ? 'cursor-pointer' : 'cursor-default'}
+              ${isActive ? 'border-rio-primary shadow-lg ring-2 ring-rio-primary/20' : isInfoOnly ? 'border-slate-200/60 border-dashed hover:border-slate-300' : 'border-slate-200 hover:border-rio-primary/50'}
             `}
             style={{
               left: layout.left,
@@ -450,16 +456,15 @@ export const LineageTree: React.FC<LineageTreeProps> = ({
               width: layout.width,
               height: layout.height,
               zIndex: finalZIndex,
-              opacity: layout.opacity,
+              opacity: finalOpacity,
               transform: `scale(${finalScale})`,
-              boxShadow: isTarget && isActive ? '0 0 30px rgba(0, 112, 243, 0.4)' : undefined
             }}
             onMouseEnter={() => setHoveredNode(node.id)}
             onMouseLeave={() => setHoveredNode(null)}
             onClick={() => {
               if (node.externalUrl) {
                 window.open(node.externalUrl, '_blank');
-              } else if (node.model) {
+              } else if (node.model && node.hasDetailPage) {
                 onSelectModel(node.model);
               }
             }}
@@ -469,15 +474,22 @@ export const LineageTree: React.FC<LineageTreeProps> = ({
                 const Icon = node.icon || node.model?.Icon;
                 return (
                   Icon && (
-                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 ${isTarget || isOmni ? 'text-white' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 ${isInfoOnly ? 'text-slate-400' : 'text-slate-500'}`} />
                   )
                 );
               })()}
               <span
-                className={`font-medium text-xs sm:text-sm ${isTarget || isOmni ? 'text-white' : 'text-slate-700'}`}
+                className={`font-medium text-xs sm:text-sm flex-1 ${isInfoOnly ? 'text-slate-500' : 'text-slate-700'}`}
               >
                 {node.label}
               </span>
+              {/* Action indicator icons */}
+              {node.hasDetailPage && (
+                <ChevronRight className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-300 ${isActive ? 'translate-x-0.5 text-rio-primary' : 'text-slate-400'}`} />
+              )}
+              {node.externalUrl && (
+                <ExternalLink className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 ${isActive ? 'text-rio-primary' : 'text-slate-400'}`} />
+              )}
             </div>
           </div>
         );

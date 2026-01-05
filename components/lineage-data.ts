@@ -25,6 +25,7 @@ export interface LineageNode {
   y: number;
   parents: string[];
   externalUrl?: string;
+  hasDetailPage?: boolean;
 }
 
 // Helper to find model by name (fuzzy match ignoring version)
@@ -72,6 +73,7 @@ export const LINEAGE_NODES: LineageNode[] = [
     parents: ['qwen'],
     model: RIO_MODELS.find((m) => m.name === 'Rio 2.5'),
     icon: Brain,
+    hasDetailPage: true,
   },
   {
     id: 'rio-tool',
@@ -108,7 +110,7 @@ export const LINEAGE_NODES: LineageNode[] = [
     model: undefined,
     icon: Map,
   },
-  { id: 'rio-open', label: 'Rio Open', x: 1, y: 0, parents: ['qwen-30b'], model: findModel('Open') },
+  { id: 'rio-open', label: 'Rio Open', x: 1, y: 0, parents: ['qwen-30b'], model: findModel('Open'), hasDetailPage: true },
 
   // --- Generation 2 ---
   // From Thinking -> Code
@@ -129,6 +131,7 @@ export const LINEAGE_NODES: LineageNode[] = [
     y: 1.5,
     parents: ['rio-thinking', 'rio-tool'],
     model: findModel('Search'),
+    hasDetailPage: true,
   },
 
   // From Visão -> Grounding, OCR, Desenho, 3D
@@ -269,6 +272,7 @@ export const RIO_1_NODES: LineageNode[] = [
     parents: ['qwen-2.5-instruct'],
     model: findModel('Rio 1'),
     icon: Brain,
+    hasDetailPage: true,
   },
 ];
 
@@ -309,6 +313,7 @@ export const RIO_1_5_NODES: LineageNode[] = [
     parents: ['qwen-2.5-instruct'],
     model: findModel('Rio 1.5'),
     icon: Brain,
+    hasDetailPage: true,
   },
 
   // Secondary / Experimental
@@ -320,6 +325,7 @@ export const RIO_1_5_NODES: LineageNode[] = [
     parents: ['rio-1.5'],
     model: findModel('Rio 1.6'),
     icon: Brain,
+    hasDetailPage: true,
   },
   {
     id: 'ipiranga',
@@ -379,6 +385,7 @@ export const RIO_2_NODES: LineageNode[] = [
     y: 4.5,
     parents: ['qwen-2.5-instruct'],
     model: findModel('Rio 2.0 Open'),
+    hasDetailPage: true,
   },
   {
     id: 'rio-fala',
@@ -397,7 +404,6 @@ export const RIO_2_NODES: LineageNode[] = [
     parents: ['qwen-2.5-instruct'],
     model: findModel('Rio 2.0 Transcrição'),
   },
-  // Direct connection to Thinking/Tool (skipping Nothink as requested)
   {
     id: 'rio-thinking',
     label: 'Rio Thinking',
@@ -405,6 +411,7 @@ export const RIO_2_NODES: LineageNode[] = [
     y: 2.5,
     parents: ['qwen-2.5-instruct'],
     model: RIO_MODELS.find((m) => m.name === 'Rio 2.0'),
+    hasDetailPage: true,
   },
   {
     id: 'rio-tool-use',
@@ -504,6 +511,7 @@ export const RIO_2_NODES: LineageNode[] = [
     y: 3,
     parents: ['rio-tool-thinking'],
     model: findModel('Rio 2.0 Search'),
+    hasDetailPage: true,
   },
   {
     id: 'rio-detetive',
@@ -592,5 +600,6 @@ export const RIO_3_NODES: LineageNode[] = [
     ],
     model: RIO_MODELS.find((m) => m.name === 'Rio 3 Preview'),
     icon: Sparkles,
+    hasDetailPage: true,
   },
 ];
