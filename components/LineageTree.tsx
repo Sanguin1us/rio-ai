@@ -439,7 +439,8 @@ export const LineageTree: React.FC<LineageTreeProps> = ({
           <div
             key={node.id}
             className={`absolute flex items-center justify-center p-3 sm:p-4 rounded-xl shadow-sm border transition-all duration-500 cursor-pointer
-              ${isActive ? 'border-rio-primary shadow-lg ring-2 ring-rio-primary/20' : 'border-slate-200 bg-white/90 hover:border-rio-primary/50'}
+              ${isActive ? 'border-rio-primary shadow-lg ring-2 ring-rio-primary/20' : 'border-slate-200 hover:border-rio-primary/50'}
+              ${!isTarget && !isOmni ? 'bg-white/90' : ''}
               ${isTarget ? 'bg-gradient-to-br from-slate-900 to-rio-primary text-white border-transparent bg-[length:200%_200%] animate-gradient-xy' : ''}
               ${!isTarget && isOmni ? 'bg-slate-800 text-white border-none' : ''} 
             `}
