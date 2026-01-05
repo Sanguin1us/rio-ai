@@ -430,25 +430,34 @@ export const LineageTree: React.FC<LineageTreeProps> = ({
 
         const isActive = hoveredNode === node.id;
         const hasDetailPage = node.hasDetailPage;
-        // External URLs (Qwen models) and nodes without detail pages should be unhighlighted
+        const hasExternalUrl = !!node.externalUrl;
+        const isClickable = hasDetailPage || hasExternalUrl;
         // For 3D ring, don't treat nodes as info-only (they have their own opacity system)
         const isInfoOnly = variant !== '3d-ring' && !hasDetailPage;
 
         // Computed styles based on layout + interaction
-        const finalScale = layout.scale * (isActive ? 1.05 : 1);
+        // Info-only nodes get minimal scale on hover, detail nodes get full scale
+        const hoverScale = isInfoOnly ? 1.02 : 1.05;
+        const finalScale = layout.scale * (isActive ? hoverScale : 1);
         const finalZIndex = layout.zIndex + (isActive ? 100 : 0);
-
-        // Opacity: info-only nodes are slightly faded unless hovered (only for tree variant)
-        const finalOpacity = isInfoOnly && !isActive
-          ? layout.opacity * 0.7
-          : layout.opacity;
 
         return (
           <div
             key={node.id}
-            className={`absolute flex items-center justify-center p-3 sm:p-4 rounded-xl shadow-sm border transition-all duration-500 bg-white/90
-              ${hasDetailPage || node.externalUrl ? 'cursor-pointer' : 'cursor-default'}
-              ${isActive ? 'border-rio-primary shadow-lg ring-2 ring-rio-primary/20' : isInfoOnly ? 'border-slate-200/60 border-dashed hover:border-slate-300' : 'border-slate-200 hover:border-rio-primary/50'}
+            className={`absolute flex items-center justify-center p-3 sm:p-4 rounded-xl border transition-all duration-300
+              ${isClickable ? 'cursor-pointer' : 'cursor-default'}
+              ${isInfoOnly
+                ? 'bg-slate-50/80 border-slate-200/50'
+                : 'bg-white shadow-sm border-slate-200'
+              }
+              ${isActive
+                ? isInfoOnly
+                  ? 'border-slate-300 bg-slate-100/80'
+                  : 'border-rio-primary shadow-md ring-2 ring-rio-primary/20'
+                : isInfoOnly
+                  ? 'hover:bg-slate-100/60 hover:border-slate-200'
+                  : 'hover:border-rio-primary/40 hover:shadow-md'
+              }
             `}
             style={{
               left: layout.left,
@@ -456,7 +465,7 @@ export const LineageTree: React.FC<LineageTreeProps> = ({
               width: layout.width,
               height: layout.height,
               zIndex: finalZIndex,
-              opacity: finalOpacity,
+              opacity: layout.opacity,
               transform: `scale(${finalScale})`,
             }}
             onMouseEnter={() => setHoveredNode(node.id)}
@@ -474,21 +483,45 @@ export const LineageTree: React.FC<LineageTreeProps> = ({
                 const Icon = node.icon || node.model?.Icon;
                 return (
                   Icon && (
-                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 ${isInfoOnly ? 'text-slate-400' : 'text-slate-500'}`} />
+                    <Icon
+                      className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-colors duration-300
+                        ${isInfoOnly
+                          ? 'text-slate-400'
+                          : isActive
+                            ? 'text-rio-primary'
+                            : 'text-slate-500'
+                        }`}
+                    />
                   )
                 );
               })()}
               <span
-                className={`font-medium text-xs sm:text-sm flex-1 ${isInfoOnly ? 'text-slate-500' : 'text-slate-700'}`}
+                className={`text-xs sm:text-sm flex-1 transition-colors duration-300
+                  ${isInfoOnly
+                    ? 'font-normal text-slate-500'
+                    : 'font-medium text-slate-700'
+                  }`}
               >
                 {node.label}
               </span>
               {/* Action indicator icons */}
-              {node.hasDetailPage && (
-                <ChevronRight className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-300 ${isActive ? 'translate-x-0.5 text-rio-primary' : 'text-slate-400'}`} />
+              {hasDetailPage && (
+                <ChevronRight
+                  className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-all duration-300 
+                    ${isActive
+                      ? 'translate-x-0.5 text-rio-primary opacity-100'
+                      : 'text-slate-300 opacity-70 group-hover:opacity-100'
+                    }`}
+                />
               )}
-              {node.externalUrl && (
-                <ExternalLink className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 ${isActive ? 'text-rio-primary' : 'text-slate-400'}`} />
+              {hasExternalUrl && (
+                <ExternalLink
+                  className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-all duration-300 
+                    ${isActive
+                      ? 'text-rio-primary opacity-100'
+                      : 'text-slate-400 opacity-60'
+                    }`}
+                />
               )}
             </div>
           </div>
