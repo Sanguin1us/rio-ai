@@ -89,7 +89,9 @@ function App() {
   return (
     <ErrorBoundary name="App">
       <div className="min-h-screen bg-white font-sans">
-        <Header onNavigate={handleNavigate} currentView={currentView} />
+        {!selectedResearchPost && (
+          <Header onNavigate={handleNavigate} currentView={currentView} />
+        )}
         <main>
           {selectedModel ? (
             <ErrorBoundary name="ModelDetail">

@@ -438,17 +438,17 @@ Estamos integrando o Elastic Vision em todos os nossos modelos multimodais da s�
   },
   {
     id: 'test-time-attention',
-    title: 'Test-Time Attention',
+    title: 'Introducing <br /> Test-Time Attention',
     summary:
       'Uma análise técnica sobre como mecanismos de atenção adaptativos durante a inferência permitem que nossos modelos "pensem" mais profundamente antes de responder.',
     content: `
-# Test-Time Attention: Scaling Performance
-
-Abaixo apresentamos os resultados de nossos benchmarks de recuperação (Needle In A Haystack) comparando as capacidades de escala do Rio 3 com o uso de Test-Time Attention (TTA) contra os principais modelos proprietários do mercado.
-
 \`\`\`
 TTA_BENCHMARK_CHART
 \`\`\`
+
+# Test-Time Attention: Scaling Performance
+
+Abaixo apresentamos os resultados de nossos benchmarks de recuperação (Needle In A Haystack) comparando as capacidades de escala do Rio 3 com o uso de Test-Time Attention (TTA) contra os principais modelos proprietários do mercado.
 `,
     date: '10 Jan 2026',
     imageUrl: '/images/research/test-time-attention.png',
@@ -599,226 +599,60 @@ export const ResearchSection: React.FC<{ onSelectPost?: (post: ResearchPost) => 
   onSelectPost
 }) => {
   return (
-    <section className="bg-slate-50 py-24 sm:py-32">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <AnimateOnScroll className="mx-auto max-w-4xl text-center mb-16">
-          {/* SUPER COOL Construction Banner */}
-          <div className="mb-12 relative overflow-hidden rounded-3xl animate-glow">
-            {/* Animated Stripes Background */}
-            <div
-              className="absolute inset-0 animate-stripes opacity-20"
-              style={{
-                background: 'repeating-linear-gradient(45deg, #f59e0b, #f59e0b 10px, #fbbf24 10px, #fbbf24 20px)',
-                backgroundSize: '40px 40px',
-              }}
-            />
-
-            {/* Main Content Container */}
-            <div className="relative bg-gradient-to-br from-amber-50/95 via-amber-100/90 to-yellow-50/95 backdrop-blur-sm border-2 border-amber-300 p-8 sm:p-10">
-              {/* Traffic Cones */}
-              <div className="absolute left-4 top-4 animate-cone origin-bottom">
-                <svg width="24" height="32" viewBox="0 0 24 32" fill="none">
-                  <path d="M12 0L20 28H4L12 0Z" fill="url(#cone-gradient)" />
-                  <rect x="2" y="28" width="20" height="4" rx="1" fill="#374151" />
-                  <rect x="8" y="6" width="8" height="3" fill="white" opacity="0.9" />
-                  <rect x="6" y="14" width="12" height="3" fill="white" opacity="0.9" />
-                  <defs>
-                    <linearGradient id="cone-gradient" x1="12" y1="0" x2="12" y2="28">
-                      <stop stopColor="#fb923c" />
-                      <stop offset="1" stopColor="#ea580c" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-              <div className="absolute right-4 top-4 animate-cone origin-bottom [animation-delay:0.5s]">
-                <svg width="24" height="32" viewBox="0 0 24 32" fill="none">
-                  <path d="M12 0L20 28H4L12 0Z" fill="url(#cone-gradient2)" />
-                  <rect x="2" y="28" width="20" height="4" rx="1" fill="#374151" />
-                  <rect x="8" y="6" width="8" height="3" fill="white" opacity="0.9" />
-                  <rect x="6" y="14" width="12" height="3" fill="white" opacity="0.9" />
-                  <defs>
-                    <linearGradient id="cone-gradient2" x1="12" y1="0" x2="12" y2="28">
-                      <stop stopColor="#fb923c" />
-                      <stop offset="1" stopColor="#ea580c" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-
-              {/* Center Content */}
-              <div className="flex flex-col items-center justify-center gap-4 text-center">
-                <div className="flex items-center gap-3">
-                  <div className="h-3 w-3 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-widest text-amber-600">
-                    Área em Obras
-                  </span>
-                  <div className="h-3 w-3 rounded-full bg-amber-500 animate-pulse [animation-delay:0.5s]" />
-                </div>
-
-                <h3 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-amber-900 drop-shadow-sm">
-                  🚧 Sob Construção 🚧
-                </h3>
-
-                <p className="text-amber-700 font-medium max-w-md">
-                  Os textos dos artigos são <span className="font-bold">placeholders informativos</span>.
-                  O conteúdo final está sendo preparado pela nossa equipe.
-                </p>
-
-                {/* Animated Road with Backhoe */}
-                <div className="relative w-full max-w-lg h-16 mt-4 rounded-xl overflow-hidden bg-gradient-to-b from-slate-600 to-slate-700 border-2 border-slate-500 shadow-inner">
-                  {/* Road Lines */}
-                  <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-1 flex flex-col gap-2 py-2">
-                    {[...Array(6)].map((_, i) => (
-                      <div key={i} className="w-full h-2 bg-yellow-400 rounded-full" />
-                    ))}
-                  </div>
-
-                  {/* Dust Particles */}
-                  <div className="absolute bottom-2 left-1/2 animate-dust [--dust-x:-20px] [animation-delay:0.2s]">
-                    <div className="w-2 h-2 rounded-full bg-amber-300/60" />
-                  </div>
-                  <div className="absolute bottom-2 left-1/2 animate-dust [--dust-x:15px] [animation-delay:0.6s]">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-200/50" />
-                  </div>
-                  <div className="absolute bottom-2 left-1/2 animate-dust [--dust-x:-10px] [animation-delay:1s]">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400/40" />
-                  </div>
-
-                  {/* Retroescavadeira */}
-                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 animate-backhoe-drive">
-                    <svg width="100" height="48" viewBox="-20 0 100 48" fill="none">
-                      {/* Back Wheel */}
-                      <circle cx="16" cy="40" r="7" fill="#1f2937" />
-                      <circle cx="16" cy="40" r="5" fill="#374151" />
-                      <circle cx="16" cy="40" r="2" fill="#4b5563" />
-
-                      {/* Front Wheel */}
-                      <circle cx="48" cy="40" r="7" fill="#1f2937" />
-                      <circle cx="48" cy="40" r="5" fill="#374151" />
-                      <circle cx="48" cy="40" r="2" fill="#4b5563" />
-
-                      {/* Chassis */}
-                      <rect x="10" y="28" width="44" height="8" rx="2" fill="#d97706" />
-
-                      {/* Engine Hood */}
-                      <rect x="36" y="20" width="18" height="10" rx="2" fill="#f59e0b" />
-                      <rect x="50" y="22" width="2" height="6" rx="0.5" fill="#374151" /> {/* Exhaust */}
-                      <rect x="38" y="22" width="8" height="2" fill="#fbbf24" /> {/* Grille */}
-                      <rect x="38" y="25" width="8" height="2" fill="#fbbf24" />
-
-                      {/* Cabin */}
-                      <rect x="22" y="12" width="16" height="18" rx="2" fill="#fbbf24" />
-                      <rect x="24" y="14" width="12" height="10" rx="1" fill="#7dd3fc" opacity="0.8" /> {/* Window */}
-                      <rect x="26" y="26" width="3" height="3" rx="0.5" fill="#374151" /> {/* Door Handle */}
-
-                      {/* Front Loader Arms */}
-                      <rect x="54" y="24" width="12" height="3" rx="1" fill="#b45309" />
-                      <rect x="54" y="30" width="12" height="3" rx="1" fill="#b45309" />
-
-                      {/* Front Loader Bucket */}
-                      <path d="M64 22 L72 26 L72 36 L64 36 Z" fill="#78716c" />
-                      <path d="M70 26 L72 26 L72 36 L70 36" fill="#57534e" />
-
-                      {/* Back Excavator Arm (animated) */}
-                      <g className="origin-[12px_28px] animate-arm-dig">
-                        {/* Kingpost (Pivot Base) */}
-                        <path d="M10 26 L14 26 L14 34 L10 34 Z" fill="#78350f" />
-
-                        {/* Boom (Main Arm - Curved) */}
-                        <path d="M12 28 C12 28 8 16 2 10 L-2 12 C4 18 8 28 10 32 Z" fill="#d97706" />
-                        <circle cx="12" cy="28" r="2" fill="#374151" /> {/* Joint */}
-
-                        {/* Stick (Dipper Arm) */}
-                        <path d="M0 11 L-10 22 L-8 24 L2 13 Z" fill="#b45309" />
-                        <circle cx="0" cy="11" r="1.5" fill="#374151" /> {/* Elbow Joint */}
-
-                        {/* Bucket Linkage */}
-                        <rect x="-9" y="20" width="4" height="1" fill="#1f2937" transform="rotate(-45)" />
-
-                        {/* Bucket */}
-                        <path d="M-9 23 C-13 23 -16 26 -16 30 L-12 32 C-12 28 -10 26 -8 25 Z" fill="#57534e" />
-                        {/* Bucket Teeth */}
-                        <path d="M-16 30 L-18 31 L-16 32 L-17 33" stroke="#44403c" strokeWidth="1.5" strokeLinecap="round" />
-                      </g>
-
-                      {/* Stabilizer Legs */}
-                      <rect x="6" y="34" width="3" height="8" rx="0.5" fill="#78350f" />
-                      <rect x="4" y="40" width="7" height="2" rx="0.5" fill="#374151" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Progress Indicator */}
-                <div className="flex items-center gap-2 mt-2 text-xs text-amber-600">
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <span className="font-medium">Conteúdo sendo elaborado...</span>
-                </div>
-              </div>
-            </div>
+    <section className="bg-white py-24 sm:py-32">
+      <div className="container mx-auto px-6 lg:px-8">
+        <AnimateOnScroll className="mb-24 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-100 mb-6">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rio-primary opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-rio-primary"></span>
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Live Research Feed</span>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Pesquisa & Desenvolvimento
+          <h2 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 mb-6 font-display">
+            Pushing the boundaries of <br className="hidden md:block" />
+            <span className="text-rio-primary">Structural Intelligence.</span>
           </h2>
-          <p className="mt-4 text-lg text-slate-600">
-            Acompanhe nossos avanços mais recentes, metodologias de treinamento e descobertas no
-            campo da Inteligência Artificial aplicada ao setor público.
+          <p className="mx-auto max-w-2xl text-lg text-slate-500 leading-relaxed font-medium">
+            Explore our latest breakthroughs in large-scale model optimization,
+            test-time reasoning, and multimodal architectures designed for civic infrastructure.
           </p>
         </AnimateOnScroll>
 
         {/* Featured Section */}
-        <div className="mb-20">
-          <div className="mb-8 flex items-end justify-between border-b border-slate-200 pb-4">
-            <div>
-              <h3 className="text-2xl font-bold text-slate-900">Destaques</h3>
-              <p className="mt-1 text-slate-500">Nossas pesquisas mais importantes no momento.</p>
-            </div>
-            <div className="hidden h-1.5 w-32 rounded-full bg-rio-primary/10 sm:block">
-              <div className="h-full w-1/2 rounded-full bg-rio-primary animate-pulse" />
-            </div>
+        <div className="mb-32">
+          <div className="flex items-center gap-4 mb-10 overflow-hidden">
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 whitespace-nowrap">Featured Research</h3>
+            <div className="h-[1px] w-full bg-slate-100" />
           </div>
-          <div className="grid gap-8 md:grid-cols-2">
+          <div className="grid gap-10 md:grid-cols-2">
             {RESEARCH_POSTS.filter(p => p.isFeatured).map((post, index) => (
-              <AnimateOnScroll key={post.id} delay={index * 100} duration="duration-700">
+              <AnimateOnScroll key={post.id} delay={index * 100}>
                 <div
                   onClick={() => onSelectPost?.(post)}
-                  className="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border border-blue-100 cursor-pointer h-[450px]"
+                  className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-slate-50 border border-slate-100 cursor-pointer h-[500px] transition-all duration-500 hover:shadow-2xl hover:shadow-blue-900/5 hover:-translate-y-1"
                 >
                   <div className="relative h-full w-full overflow-hidden">
                     <img
                       src={post.imageUrl}
                       alt={post.title}
-                      className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                      className="h-full w-full object-cover grayscale-[0.2] transition-all duration-1000 group-hover:scale-105 group-hover:grayscale-0"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-90" />
 
-                    <div className="absolute top-6 left-6">
-                      <div className="inline-flex items-center gap-2 rounded-full bg-rio-primary/90 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white backdrop-blur-md shadow-lg border border-white/20">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                        </span>
-                        Destaque
+                    <div className="absolute bottom-0 left-0 right-0 p-10">
+                      <div className="mb-4 flex items-center gap-3">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Featured Paper</span>
+                        <div className="h-1.5 w-1.5 rounded-full bg-rio-primary" />
+                        <span className="text-[10px] font-bold text-white/60">{post.date}</span>
                       </div>
-                    </div>
-
-                    <div className="absolute bottom-0 left-0 p-8 w-full">
-                      <div className="mb-3 flex items-center gap-2 text-xs font-medium text-blue-200/80">
-                        <Calendar className="h-4 w-4" />
-                        {post.date}
-                      </div>
-                      <h3 className="mb-4 text-3xl font-black text-white leading-tight group-hover:text-blue-200 transition-colors">
-                        {post.title}
-                      </h3>
-                      <p className="mb-6 text-sm leading-relaxed text-slate-100 line-clamp-2 opacity-90">
+                      <h4
+                        className="text-3xl font-bold text-white mb-4 leading-tight group-hover:text-blue-200 transition-colors"
+                        dangerouslySetInnerHTML={{ __html: post.title }}
+                      />
+                      <p className="text-white/70 line-clamp-2 text-sm leading-relaxed max-w-md">
                         {post.summary}
                       </p>
-                      <div className="inline-flex items-center gap-3 rounded-xl bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/20 transition-all group-hover:bg-white group-hover:text-rio-primary group-hover:gap-5">
-                        Ler Pesquisa Completa
-                        <ArrowRight className="h-5 w-5" />
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -827,15 +661,39 @@ export const ResearchSection: React.FC<{ onSelectPost?: (post: ResearchPost) => 
           </div>
         </div>
 
-        {/* Regular Posts Section */}
+        {/* Research Index */}
         <div>
-          <div className="mb-8 border-b border-slate-200 pb-4">
-            <h3 className="text-2xl font-bold text-slate-900">Todos os Artigos</h3>
+          <div className="flex items-center gap-4 mb-12 overflow-hidden">
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 whitespace-nowrap">Technical Index</h3>
+            <div className="h-[1px] w-full bg-slate-100" />
           </div>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-x-10 gap-y-16 lg:grid-cols-3">
             {RESEARCH_POSTS.filter(p => !p.isFeatured).map((post, index) => (
-              <AnimateOnScroll key={post.id} delay={index * 100} duration="duration-700">
-                <ResearchCard post={post} onSelect={onSelectPost} />
+              <AnimateOnScroll key={post.id} delay={index * 50}>
+                <div
+                  onClick={() => onSelectPost?.(post)}
+                  className="group cursor-pointer"
+                >
+                  <div className="relative aspect-[16/10] mb-8 overflow-hidden rounded-3xl border border-slate-100 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-blue-900/5">
+                    <img
+                      src={post.imageUrl}
+                      alt={post.title}
+                      className="h-full w-full object-cover grayscale-[0.8] transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-rio-primary">Technical Report</span>
+                    <span className="text-slate-200">/</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{post.date}</span>
+                  </div>
+                  <h4
+                    className="text-xl font-bold text-slate-900 mb-4 leading-snug group-hover:text-rio-primary transition-colors"
+                    dangerouslySetInnerHTML={{ __html: post.title }}
+                  />
+                  <p className="text-slate-500 text-sm leading-relaxed line-clamp-3">
+                    {post.summary}
+                  </p>
+                </div>
               </AnimateOnScroll>
             ))}
           </div>

@@ -1,9 +1,10 @@
-import React from 'react';
-import { ChevronLeft, Calendar, Share2, Bookmark } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ChevronLeft, Share2, Bookmark, Clock, ArrowRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { TTABenchmarkChart } from './detail/TTABenchmarkChart';
 import type { ResearchPost } from '../types/index';
+import { motion, useScroll, useSpring } from 'framer-motion';
 
 interface ResearchDetailViewProps {
     post: ResearchPost;
@@ -11,97 +12,97 @@ interface ResearchDetailViewProps {
 }
 
 export const ResearchDetailView: React.FC<ResearchDetailViewProps> = ({ post, onBack }) => {
+    const { scrollYProgress } = useScroll();
+    const scaleX = useSpring(scrollYProgress, {
+        stiffness: 100,
+        damping: 30,
+        restDelta: 0.001
+    });
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [post]);
+
     return (
-        <div className="min-h-screen bg-white">
-            {/* Navigation Header */}
-            <div className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-md border-b border-slate-200">
-                <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <button
-                        onClick={onBack}
-                        className="group flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-rio-primary transition-colors"
-                    >
-                        <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                        Voltar para Pesquisa
-                    </button>
+        <div className="min-h-screen bg-white pb-24">
+            {/* Reading Progress Bar */}
+            <motion.div
+                className="fixed top-0 left-0 right-0 h-1 bg-rio-primary z-50 origin-left"
+                style={{ scaleX }}
+            />
 
-                    <div className="flex items-center gap-4">
-                        <button className="p-2 text-slate-400 hover:text-rio-primary transition-colors" title="Salvar artigo">
-                            <Bookmark className="h-5 w-5" />
-                        </button>
-                        <button className="p-2 text-slate-400 hover:text-rio-primary transition-colors" title="Compartilhar">
-                            <Share2 className="h-5 w-5" />
-                        </button>
-                    </div>
-                </div>
-            </div>
+            {/* Back Navigation Arrow */}
+            <motion.button
+                onClick={onBack}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.3 }}
+                className="fixed top-6 left-6 z-40 group flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/90 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200"
+                aria-label="Go back to research"
+            >
+                <ChevronLeft className="h-5 w-5 text-slate-600 group-hover:text-rio-primary transition-colors" />
+                <span className="text-sm font-medium text-slate-600 group-hover:text-rio-primary transition-colors">
+                    Back
+                </span>
+            </motion.button>
 
-            <article className="container mx-auto px-4 py-12 max-w-4xl">
-                {/* Post Meta */}
-                <div className="mb-8">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
-                        {post.title}
-                    </h1>
-                    <div className="flex items-center gap-4 text-slate-500">
-                        <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            <span className="text-sm font-medium">{post.date}</span>
-                        </div>
-                        <span className="text-slate-300">•</span>
-                        <span className="text-sm font-medium">8 min de leitura</span>
-                    </div>
-                </div>
+            <article className="pt-16 md:pt-24">
+                {/* Standard Header */}
+                <header className="container mx-auto px-6 max-w-4xl mb-16">
 
-                {/* Featured Image */}
-                <div className="mb-12 rounded-3xl overflow-hidden shadow-2xl border border-slate-100 aspect-[21/9]">
-                    <img
-                        src={post.imageUrl}
-                        alt={post.title}
-                        className="w-full h-full object-cover"
+                    <h1
+                        className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-8 leading-[1.1] tracking-tight"
+                        dangerouslySetInnerHTML={{ __html: post.title }}
                     />
-                </div>
+                </header>
 
-                {/* Content */}
-                <div className="prose prose-slate prose-lg max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                        h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-slate-900 mt-12 mb-6" {...props} />,
-                        h2: ({ node, ...props }) => <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-5 pb-2 border-b border-slate-100" {...props} />,
-                        h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-slate-900 mt-8 mb-4" {...props} />,
-                        p: ({ node, ...props }) => <p className="text-slate-700 leading-relaxed mb-6" {...props} />,
-                        ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-6 space-y-3 mb-6" {...props} />,
-                        li: ({ node, ...props }) => <li className="text-slate-700 marker:text-rio-primary" {...props} />,
-                        blockquote: ({ node, ...props }) => (
-                            <blockquote className="border-l-4 border-rio-primary bg-slate-50 px-6 py-8 my-10 rounded-r-2xl italic text-slate-800 text-xl font-medium" {...props} />
-                        ),
-                        // Custom components
-                        code: ({ node, inline, className, children, ...props }: any) => {
-                            const content = String(children).trim();
-                            if (!inline && content === 'TTA_BENCHMARK_CHART') {
-                                return <TTABenchmarkChart />;
-                            }
-                            return <code className={className} {...props}>{children}</code>;
-                        }
-                    }}>
-                        {post.content || post.summary}
-                    </ReactMarkdown>
-                </div>
-
-                {/* Footer info */}
-                <div className="mt-20 pt-10 border-t border-slate-100">
-                    <div className="bg-slate-50 rounded-2xl p-8 flex items-center justify-between flex-wrap gap-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-rio-primary flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                R
-                            </div>
-                            <div>
-                                <p className="font-bold text-slate-900 leading-tight">Equipe de Pesquisa Rio-AI</p>
-                                <p className="text-sm text-slate-500">Desenvolvendo o futuro da IA governamental</p>
-                            </div>
-                        </div>
-                        <button className="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 hover:bg-slate-50 transition-colors shadow-sm">
-                            Seguir Equipe
-                        </button>
+                {/* Main Content Body */}
+                <main className="container mx-auto px-6 max-w-3xl">
+                    <div className="prose prose-slate prose-lg max-w-none">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-slate-900 mt-16 mb-8 tracking-tight" {...props} />,
+                                h2: ({ node, ...props }) => <h2 className="text-2xl font-bold text-slate-900 mt-14 mb-6 pb-4 border-b border-slate-100" {...props} />,
+                                h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-slate-900 mt-10 mb-5" {...props} />,
+                                p: ({ node, ...props }) => <p className="text-slate-600 leading-[1.8] text-lg mb-8" {...props} />,
+                                ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-6 space-y-4 mb-8 text-slate-600" {...props} />,
+                                li: ({ node, ...props }) => <li className="marker:text-rio-primary font-medium" {...props} />,
+                                blockquote: ({ node, ...props }) => (
+                                    <blockquote className="border-l-4 border-rio-primary bg-slate-50 px-8 py-10 my-12 rounded-2xl italic text-slate-800 text-2xl font-medium leading-relaxed" {...props} />
+                                ),
+                                code: ({ node, inline, className, children, ...props }: any) => {
+                                    const content = String(children).trim();
+                                    if (!inline && content === 'TTA_BENCHMARK_CHART') {
+                                        return <TTABenchmarkChart />;
+                                    }
+                                    return <code className="bg-slate-100 rounded px-1.5 py-0.5 text-sm font-mono text-rio-primary" {...props}>{children}</code>;
+                                }
+                            }}
+                        >
+                            {post.content || post.summary}
+                        </ReactMarkdown>
                     </div>
-                </div>
+
+                    {/* Footer / Citation */}
+                    <div className="mt-32 pt-12 border-t border-slate-100">
+                        <div className="bg-slate-50 rounded-3xl p-10 flex flex-col sm:flex-row items-center justify-between gap-8">
+                            <div className="flex items-center gap-5">
+                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rio-primary to-blue-700 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-blue-500/20">
+                                    R
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-xl text-slate-900">Rio-AI Research</h4>
+                                    <p className="text-slate-500 max-w-xs">Building the future of governmental AI through structural scaling and efficient reasoning.</p>
+                                </div>
+                            </div>
+                            <button className="group flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-rio-primary transition-all shadow-lg hover:shadow-rio-primary/25">
+                                Subscribe to updates
+                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            </button>
+                        </div>
+                    </div>
+                </main>
             </article>
         </div>
     );
