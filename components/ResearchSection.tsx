@@ -446,6 +446,10 @@ Estamos integrando o Elastic Vision em todos os nossos modelos multimodais da s�
 TTA_BENCHMARK_CHART
 \`\`\`
 
+\`\`\`
+SPINNING_EARTH_VISUALIZATION
+\`\`\`
+
 # Test-Time Attention: Scaling Performance
 
 Abaixo apresentamos os resultados de nossos benchmarks de recuperação (Needle In A Haystack) comparando as capacidades de escala do Rio 3 com o uso de Test-Time Attention (TTA) contra os principais modelos proprietários do mercado.

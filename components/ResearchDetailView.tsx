@@ -3,6 +3,7 @@ import { ChevronLeft, Share2, Bookmark, Clock, ArrowRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { TTABenchmarkChart } from './detail/TTABenchmarkChart';
+import SpinningEarth from './SpinningEarth';
 import type { ResearchPost } from '../types/index';
 import { motion, useScroll, useSpring } from 'framer-motion';
 
@@ -75,6 +76,9 @@ export const ResearchDetailView: React.FC<ResearchDetailViewProps> = ({ post, on
                                     const content = String(children).trim();
                                     if (!inline && content === 'TTA_BENCHMARK_CHART') {
                                         return <TTABenchmarkChart />;
+                                    }
+                                    if (!inline && content === 'SPINNING_EARTH_VISUALIZATION') {
+                                        return <SpinningEarth />;
                                     }
                                     return <code className="bg-slate-100 rounded px-1.5 py-0.5 text-sm font-mono text-rio-primary" {...props}>{children}</code>;
                                 }
