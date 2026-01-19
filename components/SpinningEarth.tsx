@@ -4,7 +4,7 @@ import { TextureLoader, CatmullRomCurve3, Quaternion, Vector3 } from 'three';
 import { OrbitControls } from '@react-three/drei';
 
 const EARTH_RADIUS = 2;
-const CAMERA_RADIUS = 4.4;
+const CAMERA_RADIUS = 6.0;
 const LINE_RADIUS = EARTH_RADIUS + 0.02;
 const FLY_DURATION = 1.6;
 const DRAW_DURATION = 4.8;
@@ -281,7 +281,7 @@ const SpinningEarth = () => {
         : '';
 
     return (
-        <div className={`w-full h-[500px] relative ${focusActive ? '' : 'cursor-grab active:cursor-grabbing'}`}>
+        <div className={`w-full h-[560px] md:h-[640px] relative ${focusActive ? '' : 'cursor-grab active:cursor-grabbing'}`}>
             <Canvas camera={{ position: [0, 0, 6.0], fov: 45 }}>
                 <ambientLight intensity={3.5} />
                 <pointLight position={[10, 10, 10]} intensity={2.0} />
