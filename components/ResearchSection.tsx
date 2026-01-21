@@ -105,7 +105,7 @@ const RESEARCH_POSTS: ResearchPost[] = [
   },
   {
     id: 'test-time-attention',
-    title: 'Introducing <br /> Test-Time Attention',
+    title: 'Introduzindo <br /> Test-Time Attention',
     summary:
       'Uma análise técnica sobre como mecanismos de atenção adaptativos durante a inferência permitem que nossos modelos "pensem" mais profundamente antes de responder.',
     content: `
@@ -129,9 +129,6 @@ TTA_TYPEWRITER_CALLOUT
 SPINNING_EARTH_VISUALIZATION
 \`\`\`
 
-## Como funciona
-
-![Diagrama de um Transformer LLM tradicional](/images/research/transformer-llm-diagram.svg)
 `,
     date: '10 Jan 2026',
     imageUrl: '/images/research/test-time-attention.png',
