@@ -269,15 +269,15 @@ export const ManyNeedlesChart: React.FC = () => {
             return hoveredModel === model ? 1 : 0.12;
         }
         if (isRio(model)) return isHeroLine(model) ? 1 : 0.7;
-        return 0.7;
+        return 0.85;
     };
 
     // Get stroke width
     const getStrokeWidth = (model: string) => {
-        if (hoveredModel === model) return isRio(model) ? 5 : 3.5;
+        if (hoveredModel === model) return isRio(model) ? 5 : 4;
         if (isHeroLine(model)) return 4;
         if (isRio(model)) return 2.5;
-        return 2;
+        return 3;
     };
 
     // Format context length for labels
@@ -519,7 +519,6 @@ export const ManyNeedlesChart: React.FC = () => {
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     className="transition-all duration-300 cursor-pointer"
-                                    filter={hoveredModel === model ? 'url(#line-glow)' : undefined}
                                     onMouseEnter={() => setHoveredModel(model)}
                                 />
                             ))}

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ChevronLeft, ArrowRight } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { AttentionAccuracyChart, ManyNeedlesChart, TTABenchmarkChart } from './detail/TTABenchmarkChart';
@@ -98,24 +98,6 @@ export const ResearchDetailView: React.FC<ResearchDetailViewProps> = ({ post, on
                         </ReactMarkdown>
                     </div>
 
-                    {/* Footer / Citation */}
-                    <div className="mt-32 pt-12 border-t border-slate-100">
-                        <div className="bg-slate-50 rounded-3xl p-10 flex flex-col sm:flex-row items-center justify-between gap-8">
-                            <div className="flex items-center gap-5">
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rio-primary to-blue-700 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-blue-500/20">
-                                    R
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-xl text-slate-900">Rio-AI Research</h4>
-                                    <p className="text-slate-500 max-w-xs">Building the future of governmental AI through structural scaling and efficient reasoning.</p>
-                                </div>
-                            </div>
-                            <button className="group flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-rio-primary transition-all shadow-lg hover:shadow-rio-primary/25">
-                                Subscribe to updates
-                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </button>
-                        </div>
-                    </div>
                 </main>
             </article>
         </div>
